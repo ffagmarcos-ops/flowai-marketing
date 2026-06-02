@@ -195,131 +195,132 @@ function AppContent() {
               </button>
             </div>
 
-            {/* Description banner */}
-            <div style={{ padding: '12px 20px', backgroundColor: 'rgba(255,255,255,0.01)', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-              <p style={{ fontSize: '0.72rem', color: '#B5B5B5', margin: 0, fontStyle: 'italic', lineHeight: '1.4' }}>
-                {assistantGuide.descricao} Selecione um módulo abaixo para aprender a usar cada recurso.
-              </p>
+            {/* Description banner + filtered steps */}
+            {(() => {
+              const filteredPassos = assistantGuide.passos.filter(p => p.roles?.includes(currentUsuario.role));
+              const currentStep = filteredPassos.find(s => s.modulo === activeAssistantTab);
+              return (
+                <>
+                  <div style={{ padding: '12px 20px', backgroundColor: 'rgba(255,255,255,0.01)', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                    <p style={{ fontSize: '0.72rem', color: '#B5B5B5', margin: 0, fontStyle: 'italic', lineHeight: '1.4' }}>
+                      {assistantGuide.descricao} Selecione um módulo abaixo para aprender a usar cada recurso.
+                    </p>
+                  </div>
+
+                  {/* Modules Horizontal Tab Grid */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(4, 1fr)',
+                    gap: '6px',
+                    padding: '12px 20px',
+                    backgroundColor: '#1E1E1E',
+                    borderBottom: '1px solid #2A2A2A'
+                  }}>
+                    {filteredPassos.map((step) => {
+                      const isActive = activeAssistantTab === step.modulo;
+                      return (
+                        <button
+                          key={step.modulo}
+                          onClick={() => setActiveAssistantTab(step.modulo)}
+                          style={{
+                            backgroundColor: isActive ? 'rgba(58, 134, 255, 0.1)' : '#252525',
+                            border: isActive ? '1px solid var(--gold-primary)' : '1px solid rgba(255, 255, 255, 0.03)',
+                            color: isActive ? 'var(--gold-primary)' : '#B5B5B5',
+                            padding: '8px 4px',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '4px',
+                            transition: 'all 0.2s ease',
+                            textAlign: 'center'
+                          }}
+                        >
+                          <i className={`fas ${step.icon}`} style={{ fontSize: '0.85rem' }}></i>
+                          <span style={{ fontSize: '0.55rem', fontWeight: 600, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', width: '100%' }}>
+                            {step.titulo.split(' ')[0]}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Content pane */}
+                  <div style={{ flex: 1, padding: '24px 20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {currentStep ? (
+                      <>
+                        <h4 style={{ margin: 0, fontSize: '1rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #2A2A2A', paddingBottom: '10px' }}>
+                          <i className={`fas ${currentStep.icon}`} style={{ color: 'var(--gold-primary)' }}></i>
+                          {currentStep.titulo}
+                        </h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          {currentStep.instrucoes.map((ins, index) => (
+                            <div key={index} style={{
+                              display: 'flex',
+                              gap: '10px',
+                              alignItems: 'flex-start',
+                              backgroundColor: '#252525',
+                              padding: '12px 14px',
+                              borderRadius: '8px',
+                              border: '1px solid rgba(255,255,255,0.02)'
+                            }}>
+                              <div style={{
+                                width: '18px',
+                                height: '18px',
+                                borderRadius: '50%',
+                                backgroundColor: 'rgba(58, 134, 255, 0.1)',
+                                color: 'var(--gold-primary)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '0.65rem',
+                                fontWeight: 700,
+                                flexShrink: 0,
+                                marginTop: '2px'
+                              }}>
+                                {index + 1}
+                              </div>
+                              <p style={{ fontSize: '0.78rem', color: '#E0E0E0', margin: 0, lineHeight: '1.4' }}>
+                                {ins}
+                              </p>
+                            </div>
+                          ))}
                         </div>
-            {/* Role‑filtered assistant steps */}
-            const filteredPassos = assistantGuide.passos.filter(p => p.roles?.includes(currentUsuario.role));
-
-            {/* Modules Horizontal / Vertical Tab Grid */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: '6px',
-              padding: '12px 20px',
-              backgroundColor: '#1E1E1E',
-              borderBottom: '1px solid #2A2A2A'
-            }}>
-              {filteredPassos.map((step) => {
-                const isActive = activeAssistantTab === step.modulo;
-                return (
-                  <button
-                    key={step.modulo}
-                    onClick={() => setActiveAssistantTab(step.modulo)}
-                    style={{
-                      backgroundColor: isActive ? 'rgba(58, 134, 255, 0.1)' : '#252525',
-                      border: isActive ? '1px solid var(--gold-primary)' : '1px solid rgba(255, 255, 255, 0.03)',
-                      color: isActive ? 'var(--gold-primary)' : '#B5B5B5',
-                      padding: '8px 4px',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '4px',
-                      transition: 'all 0.2s ease',
-                      textAlign: 'center'
-                    }}
-                  >
-                    <i className={`fas ${step.icon}`} style={{ fontSize: '0.85rem' }}></i>
-                    <span style={{ fontSize: '0.55rem', fontWeight: 600, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', width: '100%' }}>
-                      {step.titulo.split(' ')[0]}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Content pane */}
-            <div style={{ flex: 1, padding: '24px 20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {(() => {
-                const currentStep = filteredPassos.find(s => s.modulo === activeAssistantTab);
-                if (!currentStep) return null;
-                return (
-                  <>
-                    <h4 style={{ margin: 0, fontSize: '1rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #2A2A2A', paddingBottom: '10px' }}>
-                      <i className={`fas ${currentStep.icon}`} style={{ color: 'var(--gold-primary)' }}></i>
-                      {currentStep.titulo}
-                    </h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {currentStep.instrucoes.map((ins, index) => (
-                        <div key={index} style={{
-                          display: 'flex',
-                          gap: '10px',
-                          alignItems: 'flex-start',
-                          backgroundColor: '#252525',
-                          padding: '12px 14px',
-                          borderRadius: '8px',
-                          border: '1px solid rgba(255,255,255,0.02)'
-                        }}>
-                          <div style={{
-                            width: '18px',
-                            height: '18px',
-                            borderRadius: '50%',
-                            backgroundColor: 'rgba(58, 134, 255, 0.1)',
-                            color: 'var(--gold-primary)',
+                        <button
+                          onClick={() => {
+                            setActiveView(currentStep.modulo);
+                            setShowAssistant(false);
+                          }}
+                          style={{
+                            marginTop: 'auto',
+                            width: '100%',
+                            backgroundColor: 'var(--gold-primary)',
+                            color: '#000',
+                            border: 'none',
+                            padding: '12px',
+                            borderRadius: '6px',
+                            fontSize: '0.8rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            fontSize: '0.65rem',
-                            fontWeight: 700,
-                            flexShrink: 0,
-                            marginTop: '2px'
-                          }}>
-                            {index + 1}
-                          </div>
-                          <p style={{ fontSize: '0.78rem', color: '#E0E0E0', margin: 0, lineHeight: '1.4' }}>
-                            {ins}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        setActiveView(currentStep.modulo);
-                        setShowAssistant(false);
-                      }}
-                      style={{
-                        marginTop: 'auto',
-                        width: '100%',
-                        backgroundColor: 'var(--gold-primary)',
-                        color: '#000',
-                        border: 'none',
-                        padding: '12px',
-                        borderRadius: '6px',
-                        fontSize: '0.8rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        transition: 'var(--transition-fast)'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.filter = 'brightness(1.1)'}
-                      onMouseLeave={(e) => e.currentTarget.style.filter = 'none'}
-                    >
-                      <i className="fas fa-arrow-right-to-bracket"></i>
-                      Acessar Módulo: {currentStep.titulo}
-                    </button>
-                  </>
-                );
-              })()}
-            </div>
+                            gap: '8px',
+                            transition: 'var(--transition-fast)'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.filter = 'brightness(1.1)'}
+                          onMouseLeave={(e) => e.currentTarget.style.filter = 'none'}
+                        >
+                          <i className="fas fa-arrow-right-to-bracket"></i>
+                          Acessar Módulo: {currentStep.titulo}
+                        </button>
+                      </>
+                    ) : null}
+                  </div>
+                </>
+              );
+            })()}
           </div>
         )}
       </main>
