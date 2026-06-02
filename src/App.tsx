@@ -10,6 +10,7 @@ import { CalendarView } from './views/CalendarView';
 import { ApprovalPortalView } from './views/ApprovalPortalView';
 import { AIToolsView } from './views/AIToolsView';
 import { ReportsView } from './views/ReportsView';
+import { AdminView } from './views/AdminView';
 import assistantGuide from './data/assistant_guide.json';
 
 function AppContent() {
@@ -59,6 +60,8 @@ function AppContent() {
         return <AIToolsView />;
       case 'reports':
         return <ReportsView />;
+      case 'admin':
+        return <AdminView />;
       default:
         return <DashboardView />;
     }

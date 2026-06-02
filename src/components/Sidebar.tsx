@@ -17,7 +17,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView }) =
     { id: 'calendar', label: 'Calendário de Marketing', icon: 'fa-calendar-alt' },
     { id: 'approval', label: 'Portal de Aprovação', icon: 'fa-check-double' },
     { id: 'ai-tools', label: 'IA de Marketing', icon: 'fa-brain' },
-    { id: 'reports', label: 'Relatórios & SLA', icon: 'fa-file-invoice-dollar' }
+    { id: 'reports', label: 'Relatórios & SLA', icon: 'fa-file-invoice-dollar' },
+    { id: 'admin', label: 'Painel Administrativo', icon: 'fa-sliders', adminOnly: true },
   ];
 
   // CLIENT ACCESS CONTROL: Filter tabs based on contact's permissions checklist in the CRM
@@ -29,14 +30,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView }) =
 
   const visibleMenuItems = isClient 
     ? menuItems.filter(item => {
-        if (item.id === 'calendar') return true; // Clients always have access to the planning calendar!
-        if (item.id === 'approval') return true; // Clients always have access to the approval portal!
+        if (item.id === 'calendar') return true;
+        if (item.id === 'approval') return true;
         if (item.id === 'kanban') return activeAcessos.includes('Fluxo de Trabalho Inteligente');
         if (item.id === 'whatsapp') return activeAcessos.includes('Central de WhatsApp');
         if (item.id === 'reports') return activeAcessos.includes('Relatórios & Metas SLA');
-        return false; // All other modules are agência-only
+        return false;
       })
-    : menuItems;
+    : menuItems.filter(item => {
+        if ((item as any).adminOnly) return currentUsuario.role === 'agencia';
+        return true;
+      });
 
   return (
     <aside style={{
@@ -196,48 +200,54 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView }) =
         </span>
       </div>
 
-      {/* SIDEBAR NAVIGATION LIST */}
-      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {visibleMenuItems.map(item => {
+      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        {visibleMenuItems.map((item, idx) => {
           const isActive = activeView === item.id;
+          const isAdmin = item.id === 'admin';
+          const prevIsAdmin = idx > 0 && (visibleMenuItems[idx - 1] as any).id === 'reports';
           return (
-            <button
-              key={item.id}
-              onClick={() => setActiveView(item.id)}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '14px',
-                padding: '12px 16px',
-                backgroundColor: isActive ? 'var(--glass-bg)' : 'transparent',
-                border: '1px solid',
-                borderColor: isActive ? 'var(--glass-border)' : 'transparent',
-                color: isActive ? 'var(--gold-primary)' : '#B5B5B5',
-                borderRadius: '6px',
-                fontSize: '0.85rem',
-                fontWeight: isActive ? 600 : 500,
-                textAlign: 'left',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                outline: 'none'
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.color = '#FFF';
-                  e.currentTarget.style.backgroundColor = '#252525';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.color = '#B5B5B5';
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }
-              }}
-            >
-              <i className={`fas ${item.icon}`} style={{ width: '18px', fontSize: '1rem' }}></i>
-              {item.label}
-            </button>
+            <React.Fragment key={item.id}>
+              {isAdmin && (
+                <div style={{ height: '1px', backgroundColor: '#2A2A2A', margin: '8px 0' }} />
+              )}
+              <button
+                onClick={() => setActiveView(item.id)}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  padding: '12px 16px',
+                  backgroundColor: isActive ? (isAdmin ? 'rgba(212,175,55,0.08)' : 'var(--glass-bg)') : 'transparent',
+                  border: '1px solid',
+                  borderColor: isActive ? (isAdmin ? 'rgba(212,175,55,0.3)' : 'var(--glass-border)') : 'transparent',
+                  color: isActive ? (isAdmin ? '#D4AF37' : 'var(--gold-primary)') : (isAdmin ? '#D4AF37' : '#B5B5B5'),
+                  borderRadius: '6px',
+                  fontSize: '0.85rem',
+                  fontWeight: isActive ? 600 : (isAdmin ? 600 : 500),
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  outline: 'none',
+                  opacity: isAdmin ? 0.9 : 1,
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = isAdmin ? '#D4AF37' : '#FFF';
+                    e.currentTarget.style.backgroundColor = isAdmin ? 'rgba(212,175,55,0.06)' : '#252525';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = isAdmin ? '#D4AF37' : '#B5B5B5';
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }
+                }}
+              >
+                <i className={`fas ${item.icon}`} style={{ width: '18px', fontSize: '1rem' }}></i>
+                {item.label}
+              </button>
+            </React.Fragment>
           );
         })}
       </nav>

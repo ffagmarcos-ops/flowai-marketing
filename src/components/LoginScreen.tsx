@@ -18,7 +18,7 @@ const roleLabel: Record<RoleType, string> = {
 };
 
 export const LoginScreen: React.FC = () => {
-  const { usuarios, contatos, clientes, setCurrentUsuario, setIsLoggedIn, setActiveView, resetDatabase, addUsuario } = useData();
+  const { usuarios, contatos, clientes, setCurrentUsuario, setIsLoggedIn, setActiveView, resetDatabase } = useData();
 
   const [activeTab, setActiveTab] = useState<'master' | 'client'>('master');
 
@@ -26,15 +26,6 @@ export const LoginScreen: React.FC = () => {
   const [pendingUser, setPendingUser]     = useState<Usuario | null>(null);
   const [promptPassword, setPromptPassword] = useState('');
   const [promptError, setPromptError]     = useState('');
-
-  // ── Agency: new user registration (only accessible inside the system login) ─
-  const [showRegister, setShowRegister]   = useState(false);
-  const [regNome, setRegNome]             = useState('');
-  const [regEmail, setRegEmail]           = useState('');
-  const [regSenha, setRegSenha]           = useState('');
-  const [regCargo, setRegCargo]           = useState('');
-  const [regRole, setRegRole]             = useState<RoleType>('gestor');
-  const [regError, setRegError]           = useState('');
 
   // ── Client tab: email + password ─────────────────────────────────────────
   const [clientEmail, setClientEmail]     = useState('');
@@ -53,19 +44,6 @@ export const LoginScreen: React.FC = () => {
     } else {
       setPromptError('Senha incorreta. Tente novamente.');
     }
-  };
-
-  const handleRegister = () => {
-    setRegError('');
-    if (!regNome.trim() || !regEmail.trim() || !regSenha.trim()) { setRegError('Nome, e-mail e senha são obrigatórios.'); return; }
-    if (usuarios.find(u => u.email.toLowerCase() === regEmail.toLowerCase())) { setRegError('Este e-mail já está cadastrado.'); return; }
-    addUsuario({
-      id: 'u_' + Date.now(), nome: regNome.trim(), email: regEmail.trim().toLowerCase(),
-      telefone: '', whatsapp: '', cargo: regCargo.trim(), role: regRole,
-      agenciaId: 'ag1', password: regSenha,
-    });
-    setShowRegister(false);
-    setRegNome(''); setRegEmail(''); setRegSenha(''); setRegCargo(''); setRegRole('gestor');
   };
 
   const handleClientLogin = () => {
@@ -220,45 +198,6 @@ export const LoginScreen: React.FC = () => {
               })}
             </div>
 
-            {/* Register new agency user — only available here inside the login */}
-            <div style={{ textAlign:'center' }}>
-              <button onClick={() => { setShowRegister(v => !v); setRegError(''); }} style={{ background:'none', border:'none', color:'#35D07F', fontSize:'0.75rem', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:'6px' }}>
-                <i className={`fas ${showRegister ? 'fa-minus-circle' : 'fa-user-plus'}`} />
-                {showRegister ? 'Cancelar cadastro' : 'Cadastrar novo usuário da agência'}
-              </button>
-            </div>
-
-            {showRegister && (
-              <div style={{ backgroundColor:'#1A1A1A', border:'1px solid rgba(255,255,255,0.06)', borderRadius:'12px', padding:'20px', display:'flex', flexDirection:'column', gap:'10px' }}>
-                <h4 style={{ margin:0, fontSize:'0.85rem', color:'var(--gold-primary)', fontWeight:700 }}>
-                  <i className="fas fa-user-plus" style={{ marginRight:'8px' }} />Novo Usuário da Agência
-                </h4>
-                {[
-                  { label:'Nome completo *', value:regNome, set:setRegNome, type:'text',     ph:'Ex: Ana Beatriz' },
-                  { label:'E-mail *',         value:regEmail, set:setRegEmail, type:'email',  ph:'ana@flowai.com' },
-                  { label:'Senha *',          value:regSenha, set:setRegSenha, type:'password', ph:'••••••••' },
-                  { label:'Cargo',            value:regCargo, set:setRegCargo, type:'text',   ph:'Ex: Designer Pleno' },
-                ].map(({ label, value, set, type, ph }) => (
-                  <div key={label} style={{ display:'flex', flexDirection:'column', gap:'4px' }}>
-                    <label style={{ fontSize:'0.68rem', color:'#B5B5B5', fontWeight:600 }}>{label}</label>
-                    <input type={type} value={value} onChange={e => set(e.target.value)} placeholder={ph} style={inputStyle} />
-                  </div>
-                ))}
-                <div style={{ display:'flex', flexDirection:'column', gap:'4px' }}>
-                  <label style={{ fontSize:'0.68rem', color:'#B5B5B5', fontWeight:600 }}>Tipo de acesso *</label>
-                  <select value={regRole} onChange={e => setRegRole(e.target.value as RoleType)} style={{ ...inputStyle, cursor:'pointer' }}>
-                    <option value="agencia">Agência (acesso total)</option>
-                    <option value="gestor">Gestor de Contas</option>
-                    <option value="designer">Designer</option>
-                    <option value="colaborador">Colaborador</option>
-                  </select>
-                </div>
-                {regError && <p style={{ fontSize:'0.72rem', color:'#FF5A5A', margin:0 }}><i className="fas fa-circle-exclamation" style={{ marginRight:'6px' }} />{regError}</p>}
-                <button onClick={handleRegister} style={{ padding:'11px', borderRadius:'8px', border:'none', backgroundColor:'var(--gold-primary)', color:'#000', fontSize:'0.82rem', fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'8px', marginTop:'4px' }}>
-                  <i className="fas fa-check" />Criar Usuário
-                </button>
-              </div>
-            )}
           </div>
         )}
 
@@ -307,18 +246,6 @@ export const LoginScreen: React.FC = () => {
           </div>
         )}
 
-        {/* Reset */}
-        <div style={{ textAlign:'center', borderTop:'1px solid rgba(255,255,255,0.05)', paddingTop:'16px' }}>
-          <button
-            onClick={() => { if (window.confirm('Resetar banco de dados para o estado inicial?')) { resetDatabase(); window.location.reload(); } }}
-            style={{ background:'none', border:'none', color:'#555', fontSize:'0.68rem', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:'6px', transition:'color 0.2s ease' }}
-            onMouseEnter={e => (e.currentTarget.style.color = '#FF5A5A')}
-            onMouseLeave={e => (e.currentTarget.style.color = '#555')}
-          >
-            <i className="fas fa-arrow-rotate-left" />
-            Resetar banco de dados
-          </button>
-        </div>
       </div>
     </div>
   );
