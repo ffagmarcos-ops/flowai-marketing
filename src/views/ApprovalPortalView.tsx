@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 
+/**
+ * @component ApprovalPortalView
+ * @description Portal de Aprovações de Criativos
+ * 
+ * Este módulo serve de workspace para o cliente final revisar as peças e artes produzidas.
+ * Se o contato atual estiver logado como 'cliente', ele visualiza apenas as demandas nas quais 
+ * foi selecionado explicitamente como aprovador (segurança por registro).
+ * 
+ * Contém o visualizador ampliado do criativo, histórico de revisões com logs de IP/data-hora e 
+ * ferramentas para disparar alertas via simulador do WhatsApp.
+ */
 export const ApprovalPortalView: React.FC = () => {
   const { 
     demandas, 

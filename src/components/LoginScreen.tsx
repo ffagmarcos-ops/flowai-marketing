@@ -2,6 +2,13 @@ import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import type { Usuario, RoleType } from '../types';
 
+/**
+ * @component LoginScreen
+ * @description Tela de login premium (Glassmorphic) com tabulação para acesso Master (Agência) e Clientes.
+ * 
+ * - Aba Agência: Apresenta a listagem dos usuários cadastrados da agência para entrada simplificada via prompt de senha.
+ * - Aba Cliente: Entrada segura por E-mail e Senha exclusivos. Vincula o usuário ao contexto específico da sua empresa (clienteId).
+ */
 const roleColor = (role: RoleType) => {
   switch (role) {
     case 'agencia':    return { bg: 'rgba(212,175,55,0.15)',  text: '#D4AF37' };

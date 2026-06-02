@@ -4,6 +4,20 @@ import type {
   Historico, Aprovacao, MensagemWhatsapp, Automacao, RoleType, StatusDemanda
 } from '../types';
 
+/**
+ * @file DataContext.tsx
+ * @description Engine de Gerenciamento de Estado e Banco de Dados Simulado (LocalStorage)
+ * 
+ * Este arquivo funciona como a camada de persistência e lógica de negócios (equivalente a uma API + Banco de Dados).
+ * Toda a informação (demandas, clientes, contatos, logs de conversas, aprovações) é armazenada de forma reativa e persistida
+ * no localStorage para manter a integridade dos dados mesmo ao recarregar o navegador.
+ * 
+ * Controle de Permissões:
+ * - Apenas usuários do tipo 'agencia'/'gestor' podem escrever ou editar dados de forma global.
+ * - Usuários do tipo 'cliente' têm acesso restrito aos dados filtrados por seu 'clienteId'.
+ */
+
+
 interface DataContextType {
   usuarios: Usuario[];
   clientes: Cliente[];

@@ -2,6 +2,13 @@ import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import type { RoleType } from '../types';
 
+/**
+ * @component AdminView
+ * @description Painel Administrativo do M.O FLOW para gerenciamento de usuários internos da agência.
+ * 
+ * Permite cadastrar novos colaboradores (designers, gestores, administradores), editar dados existentes
+ * e visualizar a tabela comparativa de permissões operacionais do sistema.
+ */
 const roleLabel: Record<RoleType, string> = {
   superadmin: 'Super Admin', agencia: 'Agência (Admin)', gestor: 'Gestor de Contas',
   designer: 'Designer', cliente: 'Cliente', colaborador: 'Colaborador',

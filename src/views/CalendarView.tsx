@@ -2,6 +2,15 @@ import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import type { Demanda, CategoriaDemanda, PrioridadeDemanda, StatusDemanda } from '../types';
 
+/**
+ * @component CalendarView
+ * @description Calendário de Planejamento de Marketing 2026
+ * 
+ * Permite agendar e planejar criativos visualmente através de visões mensais, semanais e diárias.
+ * Suporta o carregamento reativo de calendários de datas comemorativas via import de arquivos ICS 2026.
+ * Exibe miniaturas de alta resolução das peças diretamente nos cards.
+ * Contatos do cliente acessam em modo somente leitura com opção de ir diretamente para o Portal de Aprovação.
+ */
 export const CalendarView: React.FC = () => {
   const { 
     demandas, 
