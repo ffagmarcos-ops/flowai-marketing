@@ -11,6 +11,27 @@ import type { Demanda, CategoriaDemanda, PrioridadeDemanda, StatusDemanda } from
  * Exibe miniaturas de alta resolução das peças diretamente nos cards.
  * Contatos do cliente acessam em modo somente leitura com opção de ir diretamente para o Portal de Aprovação.
  */
+const getSegmentBackground = (segmento?: string) => {
+  if (!segmento) return '/bg_tecnologia.png';
+  const seg = segmento.toLowerCase();
+  if (seg.includes('alimentaç') || seg.includes('gastronom')) {
+    return '/bg_alimentacao.png';
+  }
+  if (seg.includes('moda') || seg.includes('vestuár') || seg.includes('acessór')) {
+    return '/bg_moda.png';
+  }
+  if (seg.includes('tecnolog') || seg.includes('softwar') || seg.includes('startup')) {
+    return '/bg_tecnologia.png';
+  }
+  if (seg.includes('saúd') || seg.includes('clínic') || seg.includes('odontolog')) {
+    return '/bg_saude.png';
+  }
+  if (seg.includes('imobiliár') || seg.includes('imóve') || seg.includes('construç') || seg.includes('apartament')) {
+    return '/bg_imobiliario.png';
+  }
+  return '/bg_tecnologia.png';
+};
+
 export const CalendarView: React.FC = () => {
   const { 
     demandas, 
@@ -355,72 +376,165 @@ export const CalendarView: React.FC = () => {
         </div>
       </div>
 
-      {/* FILTERS & DYNAMIC ICS VINCULATION STATE */}
+      {/* FILTERS SELECTOR ROW */}
       <div className="card-premium" style={{ 
-        padding: '16px 20px', 
+        padding: '12px 20px', 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: '16px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {currentUsuario.clienteId ? (
-            <div style={{ fontSize: '0.85rem', color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <i className="fas fa-building" style={{ color: 'var(--gold-primary)' }}></i>
-              <span>Empresa: <strong>{clientes.find(c => c.id === currentUsuario.clienteId)?.nomeFantasia}</strong></span>
-            </div>
-          ) : (
-            <>
-              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#B5B5B5' }}>
-                <i className="fas fa-filter" style={{ marginRight: '6px' }}></i> Filtrar Empresa:
-              </label>
-              <select 
-                value={selectedCalendarClientId} 
-                onChange={(e) => setSelectedCalendarClientId(e.target.value)}
-                style={{
-                  backgroundColor: '#1A1A1A',
-                  border: '1px solid #2A2A2A',
-                  color: '#FFF',
-                  padding: '8px 14px',
-                  borderRadius: '6px',
-                  fontSize: '0.8rem',
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="">Visualizar Todas as Empresas</option>
-                {clientes.map(cli => (
-                  <option key={cli.id} value={cli.id}>
-                    {cli.nomeFantasia}
-                  </option>
-                ))}
-              </select>
-            </>
-          )}
-        </div>
+        {currentUsuario.clienteId ? (
+          <div style={{ fontSize: '0.85rem', color: '#FFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <i className="fas fa-building" style={{ color: 'var(--gold-primary)' }}></i>
+            <span>Empresa: <strong>{clientes.find(c => c.id === currentUsuario.clienteId)?.nomeFantasia}</strong></span>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#B5B5B5' }}>
+              <i className="fas fa-filter" style={{ marginRight: '6px' }}></i> Filtrar Empresa:
+            </label>
+            <select 
+              value={selectedCalendarClientId} 
+              onChange={(e) => setSelectedCalendarClientId(e.target.value)}
+              style={{
+                backgroundColor: '#1E1E1E',
+                border: '1px solid #2A2A2A',
+                color: '#FFF',
+                padding: '8px 14px',
+                borderRadius: '6px',
+                fontSize: '0.8rem',
+                outline: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="">Visualizar Todas as Empresas</option>
+              {clientes.map(cli => (
+                <option key={cli.id} value={cli.id}>
+                  {cli.nomeFantasia}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
-        {activeClient && (
+        {activeClient && activeClient.calendarioIcs && (
           <div style={{ 
             display: 'flex', 
             alignItems: 'center', 
             gap: '8px', 
             fontSize: '0.75rem',
-            backgroundColor: 'rgba(58, 134, 255, 0.05)',
-            border: '1px solid var(--glass-border)',
+            backgroundColor: 'rgba(212, 175, 55, 0.05)',
+            border: '1px solid rgba(212, 175, 55, 0.15)',
             padding: '6px 12px',
             borderRadius: '20px',
             color: 'var(--gold-primary)'
           }}>
             <i className="fas fa-calendar-check"></i>
-            {activeClient.calendarioIcs ? (
-              <span>Calendário Vinculado: <strong>{activeClient.calendarioIcs}</strong> (Exibindo Sugestões do ICS 💡)</span>
-            ) : (
-              <span>Sem calendário ICS vinculado. Configure no CRM para ver sugestões.</span>
-            )}
+            <span>Calendário Vinculado: <strong>{activeClient.calendarioIcs}</strong> (ICS 💡)</span>
           </div>
         )}
       </div>
+
+      {/* CUSTOMIZED DYNAMIC SEGMENT HEADER BANNER */}
+      {activeClient && (
+        <div style={{
+          position: 'relative',
+          borderRadius: '12px',
+          overflow: 'hidden',
+          backgroundImage: `url(${getSegmentBackground(activeClient.segmento)})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          minHeight: '160px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-end',
+          padding: '28px',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+        }}>
+          {/* Dark Glass Overlay */}
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(to right, rgba(13,13,13,0.92) 30%, rgba(13,13,13,0.5) 100%)',
+            zIndex: 1
+          }} />
+          
+          {/* Content */}
+          <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+              <div style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '14px',
+                backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+                backdropFilter: 'blur(10px)',
+                flexShrink: 0,
+                boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+              }}>
+                {activeClient.logoUrl ? (
+                  <img src={activeClient.logoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                ) : (
+                  <span style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--gold-primary)' }}>
+                    {activeClient.nomeFantasia.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <div>
+                <span style={{
+                  fontSize: '0.68rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '2px',
+                  color: 'var(--gold-primary)',
+                  fontWeight: 700,
+                  display: 'block',
+                  marginBottom: '6px'
+                }}>
+                  {activeClient.segmento || 'Segmento Geral'}
+                </span>
+                <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#fff', margin: 0, textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
+                  {activeClient.nomeFantasia}
+                </h2>
+                <p style={{ fontSize: '0.8rem', color: '#B5B5B5', margin: '6px 0 0 0' }}>
+                  {activeClient.razaoSocial} &nbsp;•&nbsp; CNPJ: {activeClient.cnpj}
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+              <span style={{
+                fontSize: '0.7rem',
+                color: '#fff',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                padding: '6px 12px',
+                borderRadius: '6px',
+                backdropFilter: 'blur(5px)'
+              }}>
+                Métricas da Conta
+              </span>
+              <span style={{
+                fontSize: '0.72rem',
+                color: '#E0E0E0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <span>Tempo médio de resposta: <strong style={{ color: 'var(--gold-primary)' }}>{activeClient.tempoMedioResposta || 4}h</strong></span>
+                <span style={{ color: '#444' }}>|</span>
+                <span>Taxa de aprovação: <strong style={{ color: '#35D07F' }}>{((activeClient.aprovacoesContadas || 0) * 10) || 90}%</strong></span>
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Calendar Card */}
       <div className="card-premium" style={{ padding: '24px' }}>
