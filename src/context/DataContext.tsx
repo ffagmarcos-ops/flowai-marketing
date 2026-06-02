@@ -45,20 +45,14 @@ interface DataContextType {
   toggleAutomacao: (id: string) => void;
   simularPrazoVencido: (demandaId: string) => void;
   resetDatabase: () => void;
+  addUsuario: (usuario: Usuario) => void;
   aiLogs: string[];
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-// Core Mock Data
+// Core Mock Data — only master user; other users are created dynamically
 const DEFAULT_USUARIOS: Usuario[] = [
-  { id: 'u1', nome: 'Ricardo Aguiar', email: 'ricardo@flowai.com.br', telefone: '(11) 98888-1111', whatsapp: '(11) 98888-1111', cargo: 'Diretor de Operações', role: 'agencia', agenciaId: 'ag1' },
-  { id: 'u2', nome: 'Bárbara Costa', email: 'barbara@flowai.com.br', telefone: '(11) 97777-2222', whatsapp: '(11) 97777-2222', cargo: 'Gestora de Contas', role: 'gestor', agenciaId: 'ag1' },
-  { id: 'u3', nome: 'Lucas Medeiros', email: 'lucas@flowai.com.br', telefone: '(11) 96666-3333', whatsapp: '(11) 96666-3333', cargo: 'Designer Sênior', role: 'designer', agenciaId: 'ag1' },
-  { id: 'u4', nome: 'João Silva', email: 'joao@supermercadobom.com.br', telefone: '(11) 95555-4444', whatsapp: '(11) 95555-4444', cargo: 'Diretor Proprietário', role: 'cliente', agenciaId: 'ag1', clienteId: 'c1' },
-  { id: 'u5', nome: 'Carla Neves', email: 'carla@supermercadobom.com.br', telefone: '(11) 94444-5555', whatsapp: '(11) 94444-5555', cargo: 'Gerente de Marketing', role: 'colaborador', agenciaId: 'ag1', clienteId: 'c1' },
-  { id: 'u6', nome: 'Mateus Castro', email: 'mateus@hamburgueriagourmet.com', telefone: '(11) 93333-6666', whatsapp: '(11) 93333-6666', cargo: 'Fundador', role: 'cliente', agenciaId: 'ag1', clienteId: 'c2' },
-  // Master login user (hidden password)
   { id: 'master1', nome: 'M.O publicidade', email: 'master@flowai.com', telefone: '', whatsapp: '', cargo: 'Master Admin', role: 'agencia', agenciaId: 'ag1', password: 'after2026' }
 ];
 
@@ -119,6 +113,20 @@ const DEFAULT_AUTOMACOES: Automacao[] = [
 ];
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // ── Migration: clear old pre-seeded users (u1–u6) so only master remains ──
+  (() => {
+    const raw = localStorage.getItem('mf_usuarios');
+    if (raw) {
+      const parsed: Usuario[] = JSON.parse(raw);
+      const hasOldUsers = parsed.some(u => ['u1','u2','u3','u4','u5','u6'].includes(u.id));
+      if (hasOldUsers) {
+        // Keep only master + any dynamically created users (id starts with 'u_' or 'master')
+        const cleaned = parsed.filter(u => u.id === 'master1' || u.id.startsWith('u_'));
+        localStorage.setItem('mf_usuarios', JSON.stringify(cleaned));
+      }
+    }
+  })();
+
   const [currentUsuario, setCurrentUsuario] = useState<Usuario>(() => {
     const saved = localStorage.getItem('mf_current_user');
     return saved ? JSON.parse(saved) : DEFAULT_USUARIOS[0];
@@ -252,6 +260,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCurrentUsuario(DEFAULT_USUARIOS[0]);
     setIsLoggedIn(false);
     localStorage.clear();
+  };
+
+  const addUsuario = (usuario: Usuario) => {
+    setUsuarios(prev => [...prev, usuario]);
   };
 
   // ACTIONS
@@ -666,6 +678,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toggleAutomacao,
       simularPrazoVencido,
       resetDatabase,
+      addUsuario,
       aiLogs
     }}>
       {children}
