@@ -201,10 +201,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView }) =
       </div>
 
       <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        {visibleMenuItems.map((item, idx) => {
+        {visibleMenuItems.map((item) => {
           const isActive = activeView === item.id;
           const isAdmin = item.id === 'admin';
-          const prevIsAdmin = idx > 0 && (visibleMenuItems[idx - 1] as any).id === 'reports';
           return (
             <React.Fragment key={item.id}>
               {isAdmin && (

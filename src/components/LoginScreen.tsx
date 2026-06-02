@@ -18,7 +18,7 @@ const roleLabel: Record<RoleType, string> = {
 };
 
 export const LoginScreen: React.FC = () => {
-  const { usuarios, contatos, clientes, setCurrentUsuario, setIsLoggedIn, setActiveView, resetDatabase } = useData();
+  const { usuarios, contatos, setCurrentUsuario, setIsLoggedIn, setActiveView } = useData();
 
   const [activeTab, setActiveTab] = useState<'master' | 'client'>('master');
 
@@ -52,7 +52,6 @@ export const LoginScreen: React.FC = () => {
     const contact = contatos.find(c => c.email.toLowerCase() === email && (c as any).password === clientPassword);
     if (!contact) { setClientError('E-mail ou senha inválidos.'); return; }
 
-    const clienteVinculado = clientes.find(cl => cl.id === contact.clienteId);
     const userObj: Usuario = {
       id: contact.id, nome: contact.nome, email: contact.email,
       telefone: contact.telefone, whatsapp: contact.whatsapp, cargo: contact.cargo,

@@ -68,7 +68,6 @@ export const CRMView: React.FC = () => {
   const [editContactPriority, setEditContactPriority] = useState<number>(1);
   const [editSelectedAccesses, setEditSelectedAccesses] = useState<string[]>([]);
   const [editContactFotoUrl, setEditContactFotoUrl] = useState('');
-  const [editContactLogin, setEditContactLogin] = useState('');
   const [editContactSenha, setEditContactSenha] = useState('');
 
   const selectedClient = clientes.find(c => c.id === selectedClientId);
