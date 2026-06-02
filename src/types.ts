@@ -140,3 +140,21 @@ export interface Sla {
   tempoDecorrido: number; // hours
   status: 'Dentro do Prazo' | 'Atingido' | 'Estourado';
 }
+
+export type CanalMidia = 'Instagram' | 'Facebook' | 'YouTube' | 'LinkedIn' | 'E-mail' | 'Blog' | 'Outros';
+
+export interface ItemPlanejamento {
+  id: string;
+  clienteId: string;
+  mes: string; // "YYYY-MM" (e.g. "2026-06")
+  titulo: string;
+  descricao: string; // briefing
+  canal: CanalMidia;
+  dataPostagem: string; // YYYY-MM-DD
+  categoria: CategoriaDemanda;
+  prioridade: PrioridadeDemanda;
+  responsavelId: string; // assignee user ID
+  aprovadoresIds: string[]; // designated contact approvers
+  demandaGeradaId?: string; // links to generated demand if converted
+}
+

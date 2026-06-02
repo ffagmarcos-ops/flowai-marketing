@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { 
   Usuario, Cliente, Contato, Demanda, Comentario, 
-  Historico, Aprovacao, MensagemWhatsapp, Automacao, RoleType, StatusDemanda
+  Historico, Aprovacao, MensagemWhatsapp, Automacao, RoleType, StatusDemanda,
+  ItemPlanejamento
 } from '../types';
 
 /**
@@ -39,6 +40,12 @@ interface DataContextType {
   setSelectedCalendarClientId: (id: string) => void;
   selectedApprovalDemandId: string;
   setSelectedApprovalDemandId: (id: string) => void;
+  // Campaign Planner
+  itensPlanejamento: ItemPlanejamento[];
+  addItemPlanejamento: (item: Omit<ItemPlanejamento, 'id'>) => void;
+  updateItemPlanejamento: (item: ItemPlanejamento) => void;
+  deleteItemPlanejamento: (id: string) => void;
+  converterPlanejamentoEmDemanda: (id: string) => void;
   // CRUD & Actions
   addDemanda: (demanda: Omit<Demanda, 'id' | 'criadoEm' | 'slaEstourado'>) => void;
   updateDemanda: (demanda: Demanda) => void;
@@ -169,6 +176,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return saved ? JSON.parse(saved) : DEFAULT_AUTOMACOES;
   });
   const [aiLogs, setAiLogs] = useState<string[]>([]);
+  const [itensPlanejamento, setItensPlanejamento] = useState<ItemPlanejamento[]>(() => {
+    const saved = localStorage.getItem('mf_planejamentos');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   const [activeView, setActiveView] = useState<string>(() => {
     const saved = localStorage.getItem('mf_active_view');
@@ -241,6 +252,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('mf_automacoes', JSON.stringify(automacoes));
   }, [automacoes]);
 
+  useEffect(() => {
+    localStorage.setItem('mf_planejamentos', JSON.stringify(itensPlanejamento));
+  }, [itensPlanejamento]);
+
   const resetDatabase = () => {
     setUsuarios(DEFAULT_USUARIOS);
     setClientes(DEFAULT_CLIENTES);
@@ -251,6 +266,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setHistoricos(DEFAULT_HISTORICOS);
     setMensagensWhatsapp(DEFAULT_WHATSAPP);
     setAutomacoes(DEFAULT_AUTOMACOES);
+    setItensPlanejamento([]);
     setAiLogs([]);
     setCurrentUsuario(DEFAULT_USUARIOS[0]);
     setIsLoggedIn(false);
@@ -639,6 +655,67 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const addItemPlanejamento = (item: Omit<ItemPlanejamento, 'id'>) => {
+    const newItem: ItemPlanejamento = {
+      ...item,
+      id: 'pl_' + Date.now()
+    };
+    setItensPlanejamento(prev => [...prev, newItem]);
+  };
+
+  const updateItemPlanejamento = (updated: ItemPlanejamento) => {
+    setItensPlanejamento(prev => prev.map(item => item.id === updated.id ? updated : item));
+  };
+
+  const deleteItemPlanejamento = (id: string) => {
+    setItensPlanejamento(prev => prev.filter(item => item.id !== id));
+  };
+
+  const converterPlanejamentoEmDemanda = (id: string) => {
+    const planningItem = itensPlanejamento.find(item => item.id === id);
+    if (!planningItem) return;
+    if (planningItem.demandaGeradaId) {
+      alert('Esta demanda já foi gerada no Kanban.');
+      return;
+    }
+
+    const demandId = 'd_' + Date.now();
+    
+    // Add demand
+    const newDemand: Demanda = {
+      id: demandId,
+      clienteId: planningItem.clienteId,
+      titulo: planningItem.titulo,
+      descricao: planningItem.descricao,
+      categoria: planningItem.categoria,
+      prioridade: planningItem.prioridade,
+      responsavelId: planningItem.responsavelId,
+      prazo: planningItem.dataPostagem + 'T18:00:00Z',
+      status: 'Solicitado',
+      criadoEm: new Date().toISOString(),
+      anexos: [],
+      slaEstourado: false,
+      aprovadoresIds: planningItem.aprovadoresIds
+    };
+
+    setDemandas(prev => [...prev, newDemand]);
+
+    // Link demand in planning list
+    setItensPlanejamento(prev => prev.map(item => item.id === id ? { ...item, demandaGeradaId: demandId } : item));
+
+    // Log history
+    const newHistory: Historico = {
+      id: 'h_' + Date.now(),
+      demandaId: demandId,
+      usuarioNome: currentUsuario.nome,
+      acao: 'Gerada a partir do Planejador',
+      detalhes: `Demanda convertida a partir do planejamento mensal de marketing (Canal: ${planningItem.canal}).`,
+      tipo: 'ia',
+      criadoEm: new Date().toISOString()
+    };
+    setHistoricos(prev => [...prev, newHistory]);
+  };
+
   return (
     <DataContext.Provider value={{
       usuarios,
@@ -660,6 +737,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSelectedCalendarClientId,
       selectedApprovalDemandId,
       setSelectedApprovalDemandId,
+      itensPlanejamento,
+      addItemPlanejamento,
+      updateItemPlanejamento,
+      deleteItemPlanejamento,
+      converterPlanejamentoEmDemanda,
       addDemanda,
       updateDemanda,
       moveDemanda,

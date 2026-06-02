@@ -6,7 +6,7 @@
       "modulo": "dashboard",
       "titulo": "Dashboard Executivo",
       "icon": "fa-chart-line",
-      "roles": ["master"],
+      "roles": ["superadmin", "agencia", "gestor", "designer", "colaborador"],
       "instrucoes": [
         "Acompanhe o painel executivo com o SLA geral em tempo real, total de demandas em produção e contagens de aprovações pendentes.",
         "Monitore o nível de engajamento das empresas e o tempo médio de resposta para evitar atrasos críticos nas postagens."
@@ -16,7 +16,7 @@
       "modulo": "kanban",
       "titulo": "Fluxo de Trabalho Inteligente (Kanban)",
       "icon": "fa-chalkboard-teacher",
-      "roles": ["master"],
+      "roles": ["superadmin", "agencia", "gestor", "designer", "colaborador", "cliente"],
       "instrucoes": [
         "Visualize suas demandas em colunas organizadas: Solicitado, Em Produção, Aprovação e Publicado/Agendado.",
         "Clique em qualquer card para ver briefings detalhados, arquivos de mídia anexados, selecionar contatos responsáveis pela aprovação, e notificar os envolvidos.",
@@ -24,10 +24,22 @@
       ]
     },
     {
+      "modulo": "planner",
+      "titulo": "Planejamento de Campanhas",
+      "icon": "fa-calendar-plus",
+      "roles": ["superadmin", "agencia", "gestor", "designer", "colaborador", "cliente"],
+      "instrucoes": [
+        "Acompanhe o cronograma de campanhas e rascunhos de postagens divididos por cliente e mês referência.",
+        "Agência: Cadastre novos rascunhos de posts, defina canais de mídia (Instagram, Facebook, E-mail, etc.), briefings criativos e prazos.",
+        "Converta rascunhos em demandas ativas de Kanban instantaneamente usando o botão '🚀 Enviar Produção'.",
+        "Clientes: Visualizem de forma simplificada o planejamento de marketing estratégico agendado para a empresa."
+      ]
+    },
+    {
       "modulo": "crm",
       "titulo": "CRM & Contatos",
       "icon": "fa-users",
-      "roles": ["master"],
+      "roles": ["superadmin", "agencia", "gestor", "designer"],
       "instrucoes": [
         "Gerencie empresas e vincule contatos diretos para o fluxo de aprovação das peças e envio de mensagens operacionais.",
         "Configure permissões de acessos específicas e selecione os calendários temáticos ICS adequados para cada cliente na hora de cadastrar.",
@@ -38,7 +50,7 @@
       "modulo": "whatsapp",
       "titulo": "Central Conversas & IA",
       "icon": "fa-comments",
-      "roles": ["master"],
+      "roles": ["superadmin", "agencia", "gestor", "designer", "colaborador", "cliente"],
       "instrucoes": [
         "Centralize a comunicação do WhatsApp com os clientes diretamente no sistema em tempo real.",
         "Monitore o assistente IA analisando conversas pendentes, sugerindo respostas automáticas inteligentes e registrando intenções operacionais."
@@ -48,7 +60,7 @@
       "modulo": "calendar",
       "titulo": "Calendário de Marketing",
       "icon": "fa-calendar-alt",
-      "roles": ["master","approver","user"],
+      "roles": ["superadmin", "agencia", "gestor", "designer", "colaborador", "cliente"],
       "instrucoes": [
         "Acompanhe datas temáticas e prazos limite em uma visualização mensal, semanal ou diária detalhada.",
         "Visualize miniaturas de artes e encartes diretamente nas células dos dias do calendário.",
@@ -60,7 +72,7 @@
       "modulo": "approval",
       "titulo": "Portal de Aprovação",
       "icon": "fa-check-double",
-      "roles": ["master","approver","user"],
+      "roles": ["superadmin", "agencia", "gestor", "designer", "colaborador", "cliente"],
       "instrucoes": [
         "Portal de uso do cliente: visualize peças de arte, vídeos e encartes criados em tamanho otimizado para avaliação instantânea.",
         "Tome decisões eletrônicas rastreáveis: 'Aprovar Completo' (com assinatura auditável de IP, data/hora e usuário), 'Solicitar Ajustes' (detalhando as mudanças) ou 'Reprovar'.",
@@ -71,7 +83,7 @@
       "modulo": "ai-tools",
       "titulo": "IA de Marketing",
       "icon": "fa-brain",
-      "roles": ["master"],
+      "roles": ["superadmin", "agencia", "gestor", "designer", "colaborador"],
       "instrucoes": [
         "Gere briefings estruturados, roteiros para vídeos/reels e copys de vendas com inteligência artificial sintonizada para o tom da marca."
       ]
@@ -80,7 +92,7 @@
       "modulo": "reports",
       "titulo": "Relatórios & SLA",
       "icon": "fa-file-invoice-dollar",
-      "roles": ["master"],
+      "roles": ["superadmin", "agencia", "gestor", "designer", "colaborador", "cliente"],
       "instrucoes": [
         "Filtre relatórios detalhados por empresa para visualizar auditorias de SLA específicas.",
         "Acompanhe o tempo médio de resposta de cada cliente, a produtividade do time de design e exporte os dados em CSV, Excel ou PDF."
