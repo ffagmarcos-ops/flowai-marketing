@@ -1,0 +1,61 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Flow AI//Calendario Marketing Gastronomia 2026//PT
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+
+BEGIN:VEVENT
+UID:gast2026-01@flowai.com
+DTSTAMP:20260101T000000Z
+DTSTART:20260126T180000Z
+DTEND:20260126T235900Z
+SUMMARY:Dia da Gula - Combos Gigantes
+DESCRIPTION:Ação promocional para restaurantes com combos e porções dobradas nas redes sociais.
+END:VEVENT
+
+BEGIN:VEVENT
+UID:gast2026-02@flowai.com
+DTSTAMP:20260101T000000Z
+DTSTART:20260528T120000Z
+DTEND:20260528T235900Z
+SUMMARY:Dia Nacional do Hambúrguer
+DESCRIPTION:Promoção Smash Burger em Dobro ou batata frita grátis na compra de qualquer burger premium.
+END:VEVENT
+
+BEGIN:VEVENT
+UID:gast2026-03@flowai.com
+DTSTAMP:20260101T000000Z
+DTSTART:20260612T180000Z
+DTEND:20260612T235900Z
+SUMMARY:Dia dos Namorados - Menu Especial Casal
+DESCRIPTION:Reserva antecipada de mesas com sobremesa especial inclusa e decoração romântica.
+END:VEVENT
+
+BEGIN:VEVENT
+UID:gast2026-04@flowai.com
+DTSTAMP:20260101T000000Z
+DTSTART:20260710T180000Z
+DTEND:20260710T235900Z
+SUMMARY:Dia da Pizza - Sabores Especiais
+DESCRIPTION:Desconto progressivo na compra de duas ou mais pizzas grandes e refrigerante grátis.
+END:VEVENT
+
+BEGIN:VEVENT
+UID:gast2026-05@flowai.com
+DTSTAMP:20260101T000000Z
+DTSTART:20260915T110000Z
+DTEND:20260915T230000Z
+SUMMARY:Dia do Cliente - Drink de Cortesia
+DESCRIPTION:Comemoração do dia do cliente com distribuição de brindes ou suco/drink grátis.
+END:VEVENT
+
+BEGIN:VEVENT
+UID:gast2026-06@flowai.com
+DTSTAMP:20260101T000000Z
+DTSTART:20261127T180000Z
+DTEND:20261127T235900Z
+SUMMARY:Black Friday Burger & Beer
+DESCRIPTION:Promoção de rodízio ou chopp em dobro durante a sexta-feira de Black Friday.
+END:VEVENT
+
+END:VCALENDAR

@@ -1,0 +1,61 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Flow AI//Calendario Marketing Estetica 2026//PT
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+
+BEGIN:VEVENT
+UID:est2026-01@flowai.com
+DTSTAMP:20260101T000000Z
+DTSTART:20260308T080000Z
+DTEND:20260308T200000Z
+SUMMARY:Dia Internacional da Mulher - Semana Beauty
+DESCRIPTION:Descontos em procedimentos de estética facial, manicure, massagem e brindes para mulheres.
+END:VEVENT
+
+BEGIN:VEVENT
+UID:est2026-02@flowai.com
+DTSTAMP:20260101T000000Z
+DTSTART:20260407T080000Z
+DTEND:20260407T180000Z
+SUMMARY:Dia Mundial da Saúde - Check-up Pele
+DESCRIPTION:Promoção focada em cuidados preventivos, detox corporal e avaliação capilar gratuita.
+END:VEVENT
+
+BEGIN:VEVENT
+UID:est2026-03@flowai.com
+DTSTAMP:20260101T000000Z
+DTSTART:20260601T080000Z
+DTEND:20260612T180000Z
+SUMMARY:Semana dos Namorados - Spa Day Casal
+DESCRIPTION:Pacotes relaxantes especiais para casais com massagem e champagne inclusos.
+END:VEVENT
+
+BEGIN:VEVENT
+UID:est2026-04@flowai.com
+DTSTAMP:20260101T000000Z
+DTSTART:20260922T080000Z
+DTEND:20260922T200000Z
+SUMMARY:Chegada da Primavera - Renovação Facial
+DESCRIPTION:Lançamento de campanhas para peeling, hidratação profunda e proteção solar ativa.
+END:VEVENT
+
+BEGIN:VEVENT
+UID:est2026-05@flowai.com
+DTSTAMP:20260101T000000Z
+DTSTART:20261127T080000Z
+DTEND:20261127T210000Z
+SUMMARY:Black Friday Estética 2026
+DESCRIPTION:A maior sexta-feira do ano para fechar pacotes anuais de depilação e estética corporal.
+END:VEVENT
+
+BEGIN:VEVENT
+UID:est2026-06@flowai.com
+DTSTAMP:20260101T000000Z
+DTSTART:20261215T080000Z
+DTEND:20261224T180000Z
+SUMMARY:Natal Glow - Preparação Festas
+DESCRIPTION:Campanhas voltadas para rejuvenescimento rápido e hidratação capilar pré-festas de fim de ano.
+END:VEVENT
+
+END:VCALENDAR

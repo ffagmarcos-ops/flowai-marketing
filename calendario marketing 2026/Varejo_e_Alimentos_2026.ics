@@ -1,0 +1,61 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Flow AI//Calendario Marketing Varejo 2026//PT
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+
+BEGIN:VEVENT
+UID:var2026-01@flowai.com
+DTSTAMP:20260101T000000Z
+DTSTART:20260107T080000Z
+DTEND:20260115T220000Z
+SUMMARY:Liquidação de Janeiro - Queima de Estoque
+DESCRIPTION:Campanha de queima de estoque pós-festas para varejo de alimentos e bens de consumo.
+END:VEVENT
+
+BEGIN:VEVENT
+UID:var2026-02@flowai.com
+DTSTAMP:20260101T000000Z
+DTSTART:20260315T090000Z
+DTEND:20260315T220000Z
+SUMMARY:Dia do Consumidor - Ofertas Especiais
+DESCRIPTION:Descontos exclusivos e brindes especiais em comemoração ao Dia do Consumidor.
+END:VEVENT
+
+BEGIN:VEVENT
+UID:var2026-03@flowai.com
+DTSTAMP:20260101T000000Z
+DTSTART:20260510T080000Z
+DTEND:20260510T235900Z
+SUMMARY:Dia das Mães - Campanha Emocional & Brindes
+DESCRIPTION:A segunda melhor data do varejo. Foco em presentes e cestas especiais.
+END:VEVENT
+
+BEGIN:VEVENT
+UID:var2026-04@flowai.com
+DTSTAMP:20260101T000000Z
+DTSTART:20260809T080000Z
+DTEND:20260809T235900Z
+SUMMARY:Dia dos Pais - Promoções Especiais
+DESCRIPTION:Foco em produtos masculinos, kits de churrasco e ferramentas.
+END:VEVENT
+
+BEGIN:VEVENT
+UID:var2026-05@flowai.com
+DTSTAMP:20260101T000000Z
+DTSTART:20261127T060000Z
+DTEND:20261127T235900Z
+SUMMARY:Black Friday Varejo 2026
+DESCRIPTION:A maior sexta-feira de descontos do ano. Preparar ofertas agressivas.
+END:VEVENT
+
+BEGIN:VEVENT
+UID:var2026-06@flowai.com
+DTSTAMP:20260101T000000Z
+DTSTART:20261225T080000Z
+DTEND:20261225T235900Z
+SUMMARY:Natal Premiado - Fim de Ano
+DESCRIPTION:Campanha de agradecimento e sorteio de cestas de Natal para clientes fiéis.
+END:VEVENT
+
+END:VCALENDAR
