@@ -2,6 +2,23 @@ import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import type { Contato } from '../types';
 
+export const SEGMENTOS_OPCOES = [
+  'Alimentação / Gastronomia',
+  'Automotivo / Concessionária',
+  'Construção Civil / Incorporação',
+  'Educação / Ensino',
+  'Estética / Beleza / Cosméticos',
+  'Finanças / Seguros / Bancário',
+  'Imobiliário / Imóveis',
+  'Moda / Vestuário / Acessórios',
+  'Saúde / Clínicas / Odontologia',
+  'Serviços / Consultoria',
+  'Tecnologia / Software / Startups',
+  'Varejo / E-commerce',
+  'Entretenimento / Eventos',
+  'Outros'
+];
+
 export const CRMView: React.FC = () => {
   const { 
     clientes, 
@@ -22,7 +39,7 @@ export const CRMView: React.FC = () => {
   const [razaoSocial, setRazaoSocial] = useState('');
   const [nomeFantasia, setNomeFantasia] = useState('');
   const [cnpj, setCnpj] = useState('');
-  const [segmento, setSegmento] = useState('');
+  const [segmento, setSegmento] = useState(SEGMENTOS_OPCOES[0]);
   const [endereco, setEndereco] = useState('');
   const [telefones, setTelefones] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
@@ -94,11 +111,10 @@ export const CRMView: React.FC = () => {
       logoUrl
     });
 
-    // Reset Form
     setRazaoSocial('');
     setNomeFantasia('');
     setCnpj('');
-    setSegmento('');
+    setSegmento(SEGMENTOS_OPCOES[0]);
     setEndereco('');
     setTelefones('');
     setWhatsapp('');
@@ -619,7 +635,33 @@ backgroundColor: '#2A2A2A',
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
                     Segmento
                   </label>
-                  <input type="text" value={segmento} onChange={(e) => setSegmento(e.target.value)} className="input-premium" placeholder="Ex: Varejo / Alimentação" />
+                  <select 
+                    value={SEGMENTOS_OPCOES.includes(segmento) ? segmento : 'Outros'} 
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === 'Outros') {
+                        setSegmento('');
+                      } else {
+                        setSegmento(val);
+                      }
+                    }} 
+                    className="input-premium"
+                    style={{ color: '#fff', backgroundColor: '#252525', cursor: 'pointer' }}
+                  >
+                    {SEGMENTOS_OPCOES.map(opt => (
+                      <option key={opt} value={opt} style={{ backgroundColor: '#1F1F1F', color: '#fff' }}>{opt}</option>
+                    ))}
+                  </select>
+                  {(!SEGMENTOS_OPCOES.includes(segmento) || segmento === 'Outros') && (
+                    <input 
+                      type="text" 
+                      value={segmento} 
+                      onChange={(e) => setSegmento(e.target.value)} 
+                      className="input-premium" 
+                      style={{ marginTop: '8px' }} 
+                      placeholder="Digite o segmento personalizado..." 
+                    />
+                  )}
                 </div>
               </div>
 
@@ -1117,7 +1159,33 @@ backgroundColor: '#2A2A2A',
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
                     Segmento
                   </label>
-                  <input type="text" value={editSegmento} onChange={(e) => setEditSegmento(e.target.value)} className="input-premium" />
+                  <select 
+                    value={SEGMENTOS_OPCOES.includes(editSegmento) ? editSegmento : 'Outros'} 
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === 'Outros') {
+                        setEditSegmento('');
+                      } else {
+                        setEditSegmento(val);
+                      }
+                    }} 
+                    className="input-premium"
+                    style={{ color: '#fff', backgroundColor: '#252525', cursor: 'pointer' }}
+                  >
+                    {SEGMENTOS_OPCOES.map(opt => (
+                      <option key={opt} value={opt} style={{ backgroundColor: '#1F1F1F', color: '#fff' }}>{opt}</option>
+                    ))}
+                  </select>
+                  {(!SEGMENTOS_OPCOES.includes(editSegmento) || editSegmento === 'Outros') && (
+                    <input 
+                      type="text" 
+                      value={editSegmento} 
+                      onChange={(e) => setEditSegmento(e.target.value)} 
+                      className="input-premium" 
+                      style={{ marginTop: '8px' }} 
+                      placeholder="Digite o segmento personalizado..." 
+                    />
+                  )}
                 </div>
               </div>
 
