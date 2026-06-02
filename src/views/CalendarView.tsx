@@ -37,6 +37,7 @@ export const CalendarView: React.FC = () => {
     demandas, 
     clientes, 
     contatos,
+    usuarios,
     addDemanda, 
     updateDemanda, 
     enviarMensagemWhatsApp,
@@ -986,9 +987,9 @@ export const CalendarView: React.FC = () => {
                         className="input-premium"
                         disabled={!!currentUsuario.clienteId}
                       >
-                        <option value="u3">Lucas Medeiros (Designer Sênior)</option>
-                        <option value="u2">Bárbara Costa (Gestora de Contas)</option>
-                        <option value="u1">Ricardo Aguiar (Diretor de Operações)</option>
+                        {usuarios.filter(u => ['agencia', 'gestor', 'designer', 'colaborador', 'superadmin'].includes(u.role)).map(u => (
+                          <option key={u.id} value={u.id}>{u.nome} ({u.cargo || u.role})</option>
+                        ))}
                       </select>
                     </div>
 
@@ -1421,9 +1422,9 @@ export const CalendarView: React.FC = () => {
                       onChange={(e) => setDemandaResponsavel(e.target.value)}
                       className="input-premium"
                     >
-                      <option value="u3">Lucas Medeiros (Designer Sênior)</option>
-                      <option value="u2">Bárbara Costa (Gestora de Contas)</option>
-                      <option value="u1">Ricardo Aguiar (Diretor de Operações)</option>
+                      {usuarios.filter(u => ['agencia', 'gestor', 'designer', 'colaborador', 'superadmin'].includes(u.role)).map(u => (
+                        <option key={u.id} value={u.id}>{u.nome} ({u.cargo || u.role})</option>
+                      ))}
                     </select>
                   </div>
 
@@ -1741,7 +1742,7 @@ export const CalendarView: React.FC = () => {
                 borderTop: '1px solid #2A2A2A',
                 paddingTop: '14px',
                 display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
+                gridTemplateColumns: '1fr 1fr',
                 gap: '8px'
               }}>
                 <button
@@ -1769,7 +1770,26 @@ export const CalendarView: React.FC = () => {
                   }}
                   style={{ borderColor: '#25D366', color: '#25D366', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.75rem', padding: '10px 0' }}
                 >
-                  <i className="fab fa-whatsapp"></i> WhatsApp Web
+                  <i className="fab fa-whatsapp"></i> WhatsApp Cliente
+                </button>
+
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => {
+                    const respUser = usuarios.find(u => u.id === shareDemand.responsavelId);
+                    const respPhone = respUser?.whatsapp || '';
+                    const cleanPhone = respPhone.replace(/\D/g, '');
+                    if (!cleanPhone) {
+                      alert(`O Responsável Técnico (${respUser?.nome || 'Não definido'}) não possui WhatsApp cadastrado no Painel Administrativo.`);
+                      return;
+                    }
+                    const waUrl = `https://api.whatsapp.com/send?phone=55${cleanPhone}&text=${encodeURIComponent(shareMessage)}`;
+                    window.open(waUrl, '_blank');
+                  }}
+                  style={{ borderColor: '#FF9F43', color: '#FF9F43', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.75rem', padding: '10px 0' }}
+                >
+                  <i className="fab fa-whatsapp"></i> WhatsApp Resp. Técnico
                 </button>
 
                 <button

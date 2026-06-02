@@ -42,6 +42,7 @@ export const AdminView: React.FC = () => {
   const [email, setEmail]         = useState('');
   const [senha, setSenha]         = useState('');
   const [cargo, setCargo]         = useState('');
+  const [whatsapp, setWhatsapp]   = useState('');
   const [role, setRole]           = useState<RoleType>('gestor');
   const [formError, setFormError] = useState('');
 
@@ -51,6 +52,7 @@ export const AdminView: React.FC = () => {
   const [editEmail, setEditEmail]         = useState('');
   const [editSenha, setEditSenha]         = useState('');
   const [editCargo, setEditCargo]         = useState('');
+  const [editWhatsapp, setEditWhatsapp]   = useState('');
   const [editRole, setEditRole]           = useState<RoleType>('gestor');
   const [editError, setEditError]         = useState('');
 
@@ -62,9 +64,9 @@ export const AdminView: React.FC = () => {
     if (usuarios.find(u => u.email.toLowerCase() === email.toLowerCase())) { setFormError('Este e-mail já está cadastrado.'); return; }
     addUsuario({
       id: 'u_' + Date.now(), nome: nome.trim(), email: email.trim().toLowerCase(),
-      telefone: '', whatsapp: '', cargo: cargo.trim(), role, agenciaId: 'ag1', password: senha,
+      telefone: '', whatsapp: whatsapp.trim(), cargo: cargo.trim(), role, agenciaId: 'ag1', password: senha,
     });
-    setNome(''); setEmail(''); setSenha(''); setCargo(''); setRole('gestor');
+    setNome(''); setEmail(''); setSenha(''); setCargo(''); setWhatsapp(''); setRole('gestor');
     setShowForm(false);
   };
 
@@ -77,6 +79,7 @@ export const AdminView: React.FC = () => {
     setEditSenha('');
     setEditCargo(u.cargo || '');
     setEditRole(u.role);
+    setEditWhatsapp(u.whatsapp || '');
     setEditError('');
   };
 
@@ -91,6 +94,7 @@ export const AdminView: React.FC = () => {
       email: editEmail.trim().toLowerCase(),
       cargo: editCargo.trim(),
       role: editRole,
+      whatsapp: editWhatsapp.trim(),
       ...(editSenha ? { password: editSenha } : {}),
     });
     setEditingId(null);
@@ -163,6 +167,7 @@ export const AdminView: React.FC = () => {
                   { label: 'E-mail *',         value: email, set: setEmail, type: 'email', ph: 'ana@agencia.com' },
                   { label: 'Senha *',          value: senha, set: setSenha, type: 'password', ph: '••••••••' },
                   { label: 'Cargo',            value: cargo, set: setCargo, type: 'text', ph: 'Ex: Designer Sênior' },
+                  { label: 'WhatsApp *',       value: whatsapp, set: setWhatsapp, type: 'text', ph: 'Ex: 11999999999' },
                 ].map(({ label, value, set, type, ph }) => (
                   <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                     <label style={{ fontSize: '0.72rem', color: '#B5B5B5', fontWeight: 600 }}>{label}</label>
@@ -219,6 +224,7 @@ export const AdminView: React.FC = () => {
                             { label: 'E-mail *', value: editEmail, set: setEditEmail, type: 'email' },
                             { label: 'Nova Senha (opcional)', value: editSenha, set: setEditSenha, type: 'password' },
                             { label: 'Cargo', value: editCargo, set: setEditCargo, type: 'text' },
+                            { label: 'WhatsApp', value: editWhatsapp, set: setEditWhatsapp, type: 'text' },
                           ].map(({ label, value, set, type }) => (
                             <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                               <label style={{ fontSize: '0.68rem', color: '#B5B5B5', fontWeight: 600 }}>{label}</label>
@@ -265,8 +271,9 @@ export const AdminView: React.FC = () => {
                             </span>
                           </div>
                           <p style={{ fontSize: '0.75rem', color: '#B5B5B5', margin: '4px 0 0 0' }}>
-                            {u.cargo && <><i className="fas fa-briefcase" style={{ marginRight: '5px' }} />{u.cargo} &nbsp;</>}
+                            {u.cargo && <><i className="fas fa-briefcase" style={{ marginRight: '5px' }} />{u.cargo} &nbsp;•&nbsp; </>}
                             <i className="fas fa-envelope" style={{ marginRight: '5px' }} />{u.email}
+                            {u.whatsapp && <>&nbsp;•&nbsp; <i className="fab fa-whatsapp" style={{ color: '#25D366', marginRight: '5px' }} />{u.whatsapp}</>}
                           </p>
                         </div>
                         <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
