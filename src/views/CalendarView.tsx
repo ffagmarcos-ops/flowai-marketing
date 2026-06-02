@@ -497,11 +497,11 @@ export const CalendarView: React.FC = () => {
                                 alt="Miniatura" 
                                 style={{ 
                                   width: '100%', 
-                                  height: '36px', 
+                                  height: '72px', 
                                   objectFit: 'cover', 
-                                  borderRadius: '3px',
-                                  border: '1px solid rgba(255,255,255,0.05)',
-                                  marginTop: '2px'
+                                  borderRadius: '4px',
+                                  border: '1px solid rgba(255,255,255,0.08)',
+                                  marginTop: '4px'
                                 }} 
                               />
                             )}
@@ -600,10 +600,10 @@ export const CalendarView: React.FC = () => {
                                 alt="Miniatura" 
                                 style={{ 
                                   width: '100%', 
-                                  height: '36px', 
+                                  height: '72px', 
                                   objectFit: 'cover', 
-                                  borderRadius: '3px',
-                                  border: '1px solid rgba(255,255,255,0.05)',
+                                  borderRadius: '4px',
+                                  border: '1px solid rgba(255,255,255,0.08)',
                                   marginTop: '4px'
                                 }} 
                               />
@@ -682,11 +682,11 @@ export const CalendarView: React.FC = () => {
                           src={d.anexos[0]} 
                           alt="Miniatura" 
                           style={{ 
-                            width: '48px', 
-                            height: '48px', 
+                            width: '72px', 
+                            height: '72px', 
                             objectFit: 'cover', 
-                            borderRadius: '4px',
-                            border: '1px solid rgba(255,255,255,0.05)',
+                            borderRadius: '6px',
+                            border: '1px solid rgba(255,255,255,0.08)',
                             flexShrink: 0
                           }} 
                         />

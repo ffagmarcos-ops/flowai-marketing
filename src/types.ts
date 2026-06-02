@@ -53,6 +53,7 @@ export interface Contato {
   prioridadeEscalonamento: number; // 1 = highest priority, 2, 3...
   acessos?: string[];
   fotoUrl?: string;
+  password?: string; // login password for client portal access
 }
 
 export type CategoriaDemanda = 'Encarte' | 'Rede Social' | 'Campanha' | 'Vídeo' | 'Impressos' | 'Site' | 'Promoção' | 'Evento' | 'Outros';

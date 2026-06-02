@@ -54,6 +54,8 @@ export const CRMView: React.FC = () => {
   const [contactPriority, setContactPriority] = useState<number>(1);
   const [selectedAccesses, setSelectedAccesses] = useState<string[]>(['Aprovações de Criativos']);
   const [contactFotoUrl, setContactFotoUrl] = useState('');
+  const [contactLogin, setContactLogin] = useState('');
+  const [contactSenha, setContactSenha] = useState('');
 
   // Form States - Edit Contact
   const [showEditContactModal, setShowEditContactModal] = useState(false);
@@ -66,6 +68,8 @@ export const CRMView: React.FC = () => {
   const [editContactPriority, setEditContactPriority] = useState<number>(1);
   const [editSelectedAccesses, setEditSelectedAccesses] = useState<string[]>([]);
   const [editContactFotoUrl, setEditContactFotoUrl] = useState('');
+  const [editContactLogin, setEditContactLogin] = useState('');
+  const [editContactSenha, setEditContactSenha] = useState('');
 
   const selectedClient = clientes.find(c => c.id === selectedClientId);
   const clientContacts = contatos.filter(co => co.clienteId === selectedClientId);
@@ -111,6 +115,10 @@ export const CRMView: React.FC = () => {
       alert('Preencha os campos obrigatórios do contato.');
       return;
     }
+    if (!contactLogin || !contactSenha) {
+      alert('Defina um login (e-mail) e senha para o acesso do cliente ao portal.');
+      return;
+    }
 
     const newContact: Contato = {
       id: 'co_' + Date.now(),
@@ -122,7 +130,8 @@ export const CRMView: React.FC = () => {
       email: contactEmail,
       prioridadeEscalonamento: +contactPriority,
       acessos: selectedAccesses,
-      fotoUrl: contactFotoUrl
+      fotoUrl: contactFotoUrl,
+      password: contactSenha
     };
 
     // Store reactively
@@ -131,7 +140,9 @@ export const CRMView: React.FC = () => {
     const updated = [...existing, newContact];
     localStorage.setItem('mf_contatos', JSON.stringify(updated));
     setContactFotoUrl('');
-    window.location.reload(); // Quick sync for contacts
+    setContactLogin('');
+    setContactSenha('');
+    window.location.reload();
   };
 
   const handleUpdateCliente = (e: React.FormEvent) => {
@@ -177,11 +188,13 @@ export const CRMView: React.FC = () => {
       email: editContactEmail,
       prioridadeEscalonamento: +editContactPriority,
       acessos: editSelectedAccesses,
-      fotoUrl: editContactFotoUrl
+      fotoUrl: editContactFotoUrl,
+      ...(editContactSenha ? { password: editContactSenha } : {})
     });
 
     setShowEditContactModal(false);
     setEditingContact(null);
+    setEditContactSenha('');
   };
 
   return (
@@ -997,6 +1010,36 @@ backgroundColor: '#2A2A2A',
                     )}
                   </div>
                 </div>
+              </div>
+
+              {/* Login / Senha for client portal */}
+              <div style={{
+                backgroundColor: '#1A1A1A',
+                border: '1px solid rgba(212,175,55,0.2)',
+                borderRadius: '8px',
+                padding: '14px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px'
+              }}>
+                <label style={{ fontSize: '0.72rem', color: 'var(--gold-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <i className="fas fa-key" />
+                  Acesso ao Portal do Cliente (login + senha)
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, marginBottom: '4px', color: '#B5B5B5' }}>Login (e-mail) *</label>
+                    <input type="email" value={contactLogin} onChange={e => setContactLogin(e.target.value)} className="input-premium" required placeholder="joao@empresa.com" />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, marginBottom: '4px', color: '#B5B5B5' }}>Senha *</label>
+                    <input type="password" value={contactSenha} onChange={e => setContactSenha(e.target.value)} className="input-premium" required placeholder="••••••••" />
+                  </div>
+                </div>
+                <p style={{ fontSize: '0.65rem', color: '#888', margin: 0 }}>
+                  <i className="fas fa-shield-halved" style={{ marginRight: '4px' }} />
+                  O cliente usará esses dados para acessar o portal de aprovações e calendário.
+                </p>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '10px' }}>

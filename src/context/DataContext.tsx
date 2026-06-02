@@ -56,53 +56,19 @@ const DEFAULT_USUARIOS: Usuario[] = [
   { id: 'master1', nome: 'M.O publicidade', email: 'master@flowai.com', telefone: '', whatsapp: '', cargo: 'Master Admin', role: 'agencia', agenciaId: 'ag1', password: 'after2026' }
 ];
 
-const DEFAULT_CLIENTES: Cliente[] = [
-  { id: 'c1', agenciaId: 'ag1', razaoSocial: 'Supermercado Bom Preço Ltda', nomeFantasia: 'Supermercado Bom Preço', cnpj: '12.345.678/0001-90', segmento: 'Varejo / Alimentos', endereco: 'Av. Paulista, 1000 - São Paulo/SP', telefones: '(11) 3222-1000', whatsapp: '(11) 95555-4444', email: 'contato@supermercadobom.com.br', nivelEngajamento: 'excelente', tempoMedioResposta: 1.8, atrasosContados: 1, aprovacoesContadas: 24, calendarioIcs: 'Varejo_e_Alimentos_2026.ics' },
-  { id: 'c2', agenciaId: 'ag1', razaoSocial: 'Hamburgueria Premium & Grill', nomeFantasia: 'Burger Premium', cnpj: '98.765.432/0001-21', segmento: 'Restaurante / Alimentação', endereco: 'Rua Augusta, 500 - São Paulo/SP', telefones: '(11) 3111-2000', whatsapp: '(11) 93333-6666', email: 'mateus@burgerpremium.com', nivelEngajamento: 'regular', tempoMedioResposta: 14.5, atrasosContados: 4, aprovacoesContadas: 12, calendarioIcs: 'Gastronomia_e_Restaurantes_2026.ics' },
-  { id: 'c3', agenciaId: 'ag1', razaoSocial: 'Clínica de Estética Vitalize', nomeFantasia: 'Estética Vitalize', cnpj: '45.678.123/0001-50', segmento: 'Saúde / Beleza', endereco: 'Alameda Lorena, 1200 - Jardins - São Paulo/SP', telefones: '(11) 3555-8888', whatsapp: '(11) 92222-7777', email: 'vitalize@esteticavitalize.com.br', nivelEngajamento: 'critico', tempoMedioResposta: 38.2, atrasosContados: 9, aprovacoesContadas: 5, calendarioIcs: 'Estetica_e_Saude_2026.ics' }
-];
+const DEFAULT_CLIENTES: Cliente[] = [];
 
-const DEFAULT_CONTATOS: Contato[] = [
-  { id: 'co1', clienteId: 'c1', nome: 'João Silva', cargo: 'Proprietário', telefone: '(11) 95555-4444', whatsapp: '(11) 95555-4444', email: 'joao@supermercadobom.com.br', prioridadeEscalonamento: 3, acessos: ['Aprovações de Criativos', 'Relatórios & Metas SLA'] },
-  { id: 'co2', clienteId: 'c1', nome: 'Carla Neves', cargo: 'Gerente de Marketing', telefone: '(11) 94444-5555', whatsapp: '(11) 94444-5555', email: 'carla@supermercadobom.com.br', prioridadeEscalonamento: 1, acessos: ['Aprovações de Criativos', 'Central de WhatsApp'] },
-  { id: 'co3', clienteId: 'c1', nome: 'Roberto Alves', cargo: 'Gerente Financeiro', telefone: '(11) 99888-0099', whatsapp: '(11) 99888-0099', email: 'roberto@supermercadobom.com.br', prioridadeEscalonamento: 2, acessos: ['Relatórios & Metas SLA'] },
-  { id: 'co4', clienteId: 'c2', nome: 'Mateus Castro', cargo: 'Proprietário', telefone: '(11) 93333-6666', whatsapp: '(11) 93333-6666', email: 'mateus@burgerpremium.com', prioridadeEscalonamento: 1, acessos: ['Aprovações de Criativos', 'Fluxo de Trabalho Inteligente'] }
-];
+const DEFAULT_CONTATOS: Contato[] = [];
 
-const DEFAULT_DEMANDAS: Demanda[] = [
-  { id: 'd1', clienteId: 'c1', titulo: 'Encarte de Ofertas da Semana', descricao: 'Criação do folheto semanal contendo as ofertas de mercearia, hortifrúti e açougue.', categoria: 'Encarte', responsavelId: 'u3', prioridade: 'Urgente', prazo: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0] + 'T12:00:00Z', status: 'Aprovação', criadoEm: new Date(Date.now() - 86400000 * 2).toISOString(), anexos: [], slaEstourado: false, aprovadoresIds: ['co1', 'co2'] },
-  { id: 'd2', clienteId: 'c1', titulo: 'Post: Combate ao Desperdício de Alimentos', descricao: 'Card informativo para redes sociais sobre dicas para conservação de legumes e frutas.', categoria: 'Rede Social', responsavelId: 'u3', prioridade: 'Média', prazo: new Date(Date.now() + 86400000 * 4).toISOString().split('T')[0] + 'T18:00:00Z', status: 'Produção', criadoEm: new Date(Date.now() - 86400000).toISOString(), anexos: [], slaEstourado: false, aprovadoresIds: ['co2'] },
-  { id: 'd3', clienteId: 'c2', titulo: 'Roteiro de Reels - Festival do Cheddar', descricao: 'Desenvolvimento do roteiro e edição básica para publicação no Instagram promovendo o novo Smash Cheddar Duplo.', categoria: 'Vídeo', responsavelId: 'u3', prioridade: 'Alta', prazo: new Date(Date.now() - 86400000).toISOString(), status: 'Aguardando Cliente', criadoEm: new Date(Date.now() - 86400000 * 5).toISOString(), anexos: [], slaEstourado: true, aprovadoresIds: ['co4'] },
-  { id: 'd4', clienteId: 'c3', titulo: 'Campanha de Inverno - Estética Corporal', descricao: 'Design de artes e redação de anúncios patrocinados para tratamentos corporais com foco no inverno.', categoria: 'Campanha', responsavelId: 'u2', prioridade: 'Alta', prazo: new Date(Date.now() + 86400000 * 6).toISOString().split('T')[0] + 'T18:00:00Z', status: 'Solicitado', criadoEm: new Date(Date.now()).toISOString(), anexos: [], slaEstourado: false, aprovadoresIds: [] },
-  { id: 'd5', clienteId: 'c1', titulo: 'Arte Sacola Ecológica', descricao: 'Layout para impressão de sacolas retornáveis ecológicas com o novo logo da rede.', categoria: 'Impressos', responsavelId: 'u3', prioridade: 'Baixa', prazo: new Date(Date.now() + 86400000 * 10).toISOString(), status: 'Concluído', criadoEm: new Date(Date.now() - 86400000 * 15).toISOString(), anexos: [], slaEstourado: false, aprovadoresIds: ['co1'] }
-];
+const DEFAULT_DEMANDAS: Demanda[] = [];
 
-const DEFAULT_APROVACOES: Aprovacao[] = [
-  { id: 'ap1', demandaId: 'd1', arquivoUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&auto=format&fit=crop&q=80', arquivoNome: 'encarte_ofertas_final.jpg', arquivoTipo: 'image', status: 'Pendente' },
-  { id: 'ap2', demandaId: 'd3', arquivoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4', arquivoNome: 'reels_cheddar_promo.mp4', arquivoTipo: 'video', status: 'Ajuste Solicitado', usuarioNome: 'Mateus Castro', dataHora: new Date(Date.now() - 86400000 * 2).toISOString(), ipAddress: '177.45.190.12', observacao: 'Pode trocar a foto do Smash Burger? Usar o que tem mais cheddar derretido na lateral por favor.' },
-  { id: 'ap3', demandaId: 'd5', arquivoUrl: 'https://images.unsplash.com/photo-1607344645866-009c320b5ab8?w=800&auto=format&fit=crop&q=80', arquivoNome: 'sacola_eco_layout.png', arquivoTipo: 'image', status: 'Aprovado', usuarioNome: 'João Silva', dataHora: new Date(Date.now() - 86400000 * 14).toISOString(), ipAddress: '200.123.4.15', observacao: 'Ficou ótimo. Aprovado para envio à gráfica.' }
-];
+const DEFAULT_APROVACOES: Aprovacao[] = [];
 
-const DEFAULT_COMENTARIOS: Comentario[] = [
-  { id: 'c_m1', demandaId: 'd1', usuarioId: 'u3', usuarioNome: 'Lucas Medeiros', usuarioRole: 'designer', conteudo: 'Subi o encarte com as ofertas atualizadas enviadas pelo Whatsapp. @Carla Neves por favor verifique o preço do arroz de 5kg se está correto.', criadoEm: new Date(Date.now() - 86400000).toISOString() },
-  { id: 'c_m2', demandaId: 'd3', usuarioId: 'u3', usuarioNome: 'Lucas Medeiros', usuarioRole: 'designer', conteudo: 'Primeira versão do roteiro de Reels adicionada para aprovação do cliente.', criadoEm: new Date(Date.now() - 86400000 * 3).toISOString() },
-  { id: 'c_m3', demandaId: 'd3', usuarioId: 'u6', usuarioNome: 'Mateus Castro', usuarioRole: 'cliente', conteudo: 'A edição está boa, mas precisamos dar mais destaque ao queijo derretido no início da gravação.', criadoEm: new Date(Date.now() - 86400000 * 2).toISOString() }
-];
+const DEFAULT_COMENTARIOS: Comentario[] = [];
 
-const DEFAULT_HISTORICOS: Historico[] = [
-  { id: 'h1', demandaId: 'd1', usuarioNome: 'Lucas Medeiros', acao: 'Criou o anexo de aprovação', detalhes: 'Encarte de ofertas adicionado para análise', tipo: 'aprovacao', criadoEm: new Date(Date.now() - 86400000).toISOString() },
-  { id: 'h2', demandaId: 'd1', usuarioNome: 'Lucas Medeiros', acao: 'Alterou o status', detalhes: 'Alterado de Produção para Aprovação', tipo: 'status', criadoEm: new Date(Date.now() - 86400000).toISOString() },
-  { id: 'h3', demandaId: 'd3', usuarioNome: 'Mateus Castro', acao: 'Solicitou Ajustes pelo Portal', detalhes: 'Observação: Pode trocar a foto do Smash Burger...', tipo: 'aprovacao', criadoEm: new Date(Date.now() - 86400000 * 2).toISOString() },
-  { id: 'h4', demandaId: 'd3', usuarioNome: 'Sistema', acao: 'Alterou o status automaticamente', detalhes: 'Status alterado de Aprovação para Aguardando Cliente', tipo: 'status', criadoEm: new Date(Date.now() - 86400000 * 2).toISOString() }
-];
+const DEFAULT_HISTORICOS: Historico[] = [];
 
-const DEFAULT_WHATSAPP: MensagemWhatsapp[] = [
-  { id: 'w1', clienteId: 'c1', direcao: 'saida', conteudo: 'Olá João! Estamos aguardando seu retorno referente ao encarte de ofertas desta semana. Para mantermos o cronograma, precisamos da aprovação até às 12h. Acesse o link: https://flowai.com/c1/d1', processadaPorIA: false, criadoEm: new Date(Date.now() - 86400000 * 3).toISOString() },
-  { id: 'w2', clienteId: 'c1', direcao: 'entrada', conteudo: 'Vou dar uma olhada e te aviso.', processadaPorIA: true, intencaoIA: 'pergunta', criadoEm: new Date(Date.now() - 86400000 * 3 + 60000).toISOString() },
-  { id: 'w3', clienteId: 'c1', direcao: 'saida', conteudo: 'Perfeito, aguardo o retorno. Obrigado!', processadaPorIA: false, criadoEm: new Date(Date.now() - 86400000 * 3 + 120000).toISOString() },
-  { id: 'w4', clienteId: 'c2', direcao: 'entrada', conteudo: 'Quais demandas estão pendentes?', processadaPorIA: true, intencaoIA: 'pergunta', criadoEm: new Date(Date.now() - 86400000).toISOString() },
-  { id: 'w5', clienteId: 'c2', direcao: 'saida', conteudo: 'Olá Mateus! Atualmente temos pendente: Roteiro de Reels - Festival do Cheddar (Aguardando seu retorno). Acesse no link: https://flowai.com/c2/d3', processadaPorIA: true, criadoEm: new Date(Date.now() - 86400000 + 30000).toISOString() }
-];
+const DEFAULT_WHATSAPP: MensagemWhatsapp[] = [];
 
 const DEFAULT_AUTOMACOES: Automacao[] = [
   { id: 'au1', agenciaId: 'ag1', evento: 'aprovacao', acao: 'notificar_designer', ativa: true },
@@ -113,16 +79,31 @@ const DEFAULT_AUTOMACOES: Automacao[] = [
 ];
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // ── Migration: clear old pre-seeded users (u1–u6) so only master remains ──
+  // ── Migration: clear old pre-seeded data so only master user + empty data remains ──
   (() => {
-    const raw = localStorage.getItem('mf_usuarios');
-    if (raw) {
-      const parsed: Usuario[] = JSON.parse(raw);
+    // Clear old users
+    const rawU = localStorage.getItem('mf_usuarios');
+    if (rawU) {
+      const parsed: Usuario[] = JSON.parse(rawU);
       const hasOldUsers = parsed.some(u => ['u1','u2','u3','u4','u5','u6'].includes(u.id));
       if (hasOldUsers) {
-        // Keep only master + any dynamically created users (id starts with 'u_' or 'master')
         const cleaned = parsed.filter(u => u.id === 'master1' || u.id.startsWith('u_'));
         localStorage.setItem('mf_usuarios', JSON.stringify(cleaned));
+      }
+    }
+    // Clear old pre-seeded clientes, contatos, demandas, etc.
+    const oldClientIds = ['c1','c2','c3'];
+    const rawC = localStorage.getItem('mf_clientes');
+    if (rawC) {
+      const parsed = JSON.parse(rawC);
+      if (parsed.some((c: any) => oldClientIds.includes(c.id))) {
+        localStorage.removeItem('mf_clientes');
+        localStorage.removeItem('mf_contatos');
+        localStorage.removeItem('mf_demandas');
+        localStorage.removeItem('mf_aprovacoes');
+        localStorage.removeItem('mf_comentarios');
+        localStorage.removeItem('mf_historicos');
+        localStorage.removeItem('mf_whatsapp');
       }
     }
   })();
