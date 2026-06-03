@@ -249,16 +249,78 @@ async function init() {
 
     // Ensure default master admin user has correct password and token if table already exists
     try {
-      const encryptedDefaultPass = hashPassword('after2026');
-      await db.query(`
-        UPDATE usuarios 
-        SET apiToken = COALESCE(apiToken, 'flowai_tk_master_admin_default_integration_key'),
-            password = COALESCE(password, ?)
-        WHERE id = 'master1'
-      `, [encryptedDefaultPass]);
-      console.log('[INITDB] Migração: Usuário master1 garantido com password e token válidos.');
+      const [rows] = await db.query("SELECT password, apiToken FROM usuarios WHERE id = 'master1'");
+      if (rows.length > 0) {
+        const u = rows[0];
+        let updateQuery = [];
+        let params = [];
+        
+        // If password is not hashed (doesn't contain ':'), update it
+        if (!u.password || !u.password.includes(':')) {
+          const encryptedDefaultPass = hashPassword('after2026');
+          updateQuery.push('password = ?');
+          params.push(encryptedDefaultPass);
+        }
+        
+        // If apiToken is not set, update it
+        if (!u.apiToken || u.apiToken === '') {
+          updateQuery.push("apiToken = 'flowai_tk_master_admin_default_integration_key'");
+        }
+        
+        if (updateQuery.length > 0) {
+          await db.query(`UPDATE usuarios SET ${updateQuery.join(', ')} WHERE id = 'master1'`, params);
+          console.log('[INITDB] Migração: Usuário master1 garantido com password criptografada e token de integração.');
+        }
+      }
     } catch (e) {
       console.log('[INITDB] Erro ao garantir dados do usuário master1:', e.message);
+    }
+
+    // General migration: hash plain text passwords for all legacy users in database
+    try {
+      const [users] = await db.query("SELECT id, password FROM usuarios WHERE password IS NOT NULL AND password NOT LIKE '%:%'");
+      for (const u of users) {
+        const hashed = hashPassword(u.password);
+        await db.query("UPDATE usuarios SET password = ? WHERE id = ?", [hashed, u.id]);
+        console.log(`[INITDB] Migração: Criptografada senha legada do usuário: ${u.id}`);
+      }
+    } catch (e) {
+      console.log('[INITDB] Erro ao migrar senhas de usuários:', e.message);
+    }
+
+    // General migration: hash plain text passwords for all legacy contatos in database
+    try {
+      const [contacts] = await db.query("SELECT id, password FROM contatos WHERE password IS NOT NULL AND password NOT LIKE '%:%'");
+      for (const c of contacts) {
+        const hashed = hashPassword(c.password);
+        await db.query("UPDATE contatos SET password = ? WHERE id = ?", [hashed, c.id]);
+        console.log(`[INITDB] Migração: Criptografada senha legada do contato: ${c.id}`);
+      }
+    } catch (e) {
+      console.log('[INITDB] Erro ao migrar senhas de contatos:', e.message);
+    }
+
+    // General migration: ensure all legacy users and contacts have apiTokens
+    try {
+      const [users] = await db.query("SELECT id FROM usuarios WHERE apiToken IS NULL OR apiToken = ''");
+      for (const u of users) {
+        const token = 'flowai_tk_' + crypto.randomBytes(16).toString('hex');
+        await db.query("UPDATE usuarios SET apiToken = ? WHERE id = ?", [token, u.id]);
+        console.log(`[INITDB] Migração: Gerado token para usuário legado: ${u.id}`);
+      }
+    } catch (e) {
+      console.log('[INITDB] Erro ao migrar tokens de usuários:', e.message);
+    }
+
+    try {
+      const [contacts] = await db.query("SELECT id FROM contatos WHERE apiToken IS NULL OR apiToken = ''");
+      for (const c of contacts) {
+        const token = 'flowai_tk_' + crypto.randomBytes(16).toString('hex');
+        await db.query("UPDATE contatos SET apiToken = ? WHERE id = ?", [token, c.id]);
+        console.log(`[INITDB] Migração: Gerado token para contato legado: ${c.id}`);
+      }
+    } catch (e) {
+      console.log('[INITDB] Erro ao migrar tokens de contatos:', e.message);
     }
 
     console.log('[INITDB] Tabelas verificadas. Inserindo dados iniciais (seeds) se necessário...');
