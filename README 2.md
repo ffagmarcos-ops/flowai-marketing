@@ -36,11 +36,7 @@ Esse processo foi pensado para projetos com estas premissas:
 - backend normalmente em Node.js
 - deploy via Portainer usando repositório Git
 - Traefik fazendo o roteamento por domínio
-- domínio principal para a aplicação
-- domínio separado para o phpMyAdmin
 - banco persistente
-- phpMyAdmin acessando o banco do projeto
-- padrão atual com MariaDB usando usuário root e senha 30mariafn@
 - initdb executado na subida do container da aplicação
 - initdb idempotente, sem perda de dados
 
@@ -73,7 +69,7 @@ Na maioria dos casos, basta informar:
 
 ```text
 APP_DOMAIN=app.seudominio.com
-PHPMYADMIN_DOMAIN=phpmyadmin.app.seudominio.com
+ADMIN_DOMAIN=admin.app.seudominio.com
 ```
 
 O prompt foi preparado para inferir o restante a partir dos arquivos anexados sempre que isso for possível.
@@ -84,7 +80,7 @@ Se quiser sobrescrever algum valor, informe também o que mudar. Exemplo:
 
 ```text
 APP_DOMAIN=api.cliente.com.br
-PHPMYADMIN_DOMAIN=phpmyadmin.api.cliente.com.br
+ADMIN_DOMAIN=admin.api.cliente.com.br
 NOME_PROJETO=API Cliente
 SLUG_PROJETO=apicliente
 APP_PORT=3000
@@ -102,7 +98,7 @@ Estou anexando o prompt principal e os arquivos de exemplo do projeto-base.
 Leia os anexos, interprete os arquivos de exemplo e gere os arquivos finais de deploy para o novo projeto.
 
 APP_DOMAIN=app.novodominio.com.br
-PHPMYADMIN_DOMAIN=phpmyadmin.app.novodominio.com.br
+ADMIN_DOMAIN=admin.app.novodominio.com.br
 ```
 
 Se quiser uma chamada mais completa:
@@ -112,7 +108,7 @@ Estou anexando o prompt principal e os arquivos de exemplo do projeto-base.
 Leia os anexos, use os exemplos como base estrutural e gere os arquivos finais de deploy prontos para uso no Portainer via repositório Git.
 
 APP_DOMAIN=app.novodominio.com.br
-PHPMYADMIN_DOMAIN=phpmyadmin.app.novodominio.com.br
+ADMIN_DOMAIN=admin.app.novodominio.com.br
 NOME_PROJETO=Novo Projeto
 SLUG_PROJETO=novoprojeto
 APP_PORT=3000
@@ -140,10 +136,9 @@ Ao usar esse fluxo, o resultado final deve respeitar estas regras:
 - compose pronto para Portainer Stack via Git repository
 - uso de rede externa do Traefik
 - domínio principal para a aplicação
-- domínio dedicado para o phpMyAdmin ou serviço administrativo equivalente
+- domínio administrativo para phpMyAdmin ou serviço administrativo equivalente
 - nomes de container, volume, rede interna e routers alinhados ao slug do projeto
-- quando seguir o padrão atual, MariaDB com usuário root e senha 30mariafn@
-- phpMyAdmin usando o mesmo root do banco quando esse for o padrão do projeto
+- sem segredos hardcoded no compose
 - variáveis de ambiente preparadas para cadastro no Portainer
 - initdb rodando antes da aplicação iniciar
 - initdb idempotente e não destrutivo
@@ -175,7 +170,7 @@ Nesses casos, o prompt deve manter o padrão geral e deixar placeholders claros 
 Para padronizar a equipe, o uso ideal é:
 - manter este diretório como base de referência
 - sempre anexar o prompt principal e os arquivos de exemplo
-- informar no mínimo APP_DOMAIN e PHPMYADMIN_DOMAIN
+- informar no mínimo APP_DOMAIN e ADMIN_DOMAIN
 - sobrescrever apenas quando houver diferença real no projeto
 
 ## Arquivo principal recomendado
