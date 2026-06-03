@@ -6,19 +6,11 @@ import type {
 } from '../types';
 
 /**
- * @file DataContext.tsx
- * @description Engine de Gerenciamento de Estado e Banco de Dados Simulado (LocalStorage)
- * 
- * Este arquivo funciona como a camada de persistência e lógica de negócios (equivalente a uma API + Banco de Dados).
- * Toda a informação (demandas, clientes, contatos, logs de conversas, aprovações) é armazenada de forma reativa e persistida
- * no localStorage para manter a integridade dos dados mesmo ao recarregar o navegador.
- * 
+ * Interface do Contexto do Banco de Dados Relacional MySQL + Redis (Simulado por REST API)
  * Controle de Permissões:
- * - Apenas usuários do tipo 'agencia'/'gestor' podem escrever ou editar dados de forma global.
- * - Usuários do tipo 'cliente' têm acesso restrito aos dados filtrados por seu 'clienteId'.
+ *  - "agencia" / "gestor" / "designer": Acesso total para criar/mover/deletar cartões e visualizar dashboards.
+ *  - "cliente": Acesso apenas em leitura para o Kanban, visualização do calendário filtrado, e acesso total ao portal de aprovação de criativos e whatsapp central.
  */
-
-
 interface DataContextType {
   usuarios: Usuario[];
   clientes: Cliente[];
@@ -32,8 +24,7 @@ interface DataContextType {
   currentUsuario: Usuario;
   setCurrentUsuario: (user: Usuario) => void;
   isLoggedIn: boolean;
-  setIsLoggedIn: (loggedIn: boolean) => void;
-  // Shared navigation & selection
+  setIsLoggedIn: (status: boolean) => void;
   activeView: string;
   setActiveView: (view: string) => void;
   selectedCalendarClientId: string;
@@ -78,17 +69,11 @@ const DEFAULT_USUARIOS: Usuario[] = [
 ];
 
 const DEFAULT_CLIENTES: Cliente[] = [];
-
 const DEFAULT_CONTATOS: Contato[] = [];
-
 const DEFAULT_DEMANDAS: Demanda[] = [];
-
 const DEFAULT_APROVACOES: Aprovacao[] = [];
-
 const DEFAULT_COMENTARIOS: Comentario[] = [];
-
 const DEFAULT_HISTORICOS: Historico[] = [];
-
 const DEFAULT_WHATSAPP: MensagemWhatsapp[] = [];
 
 const DEFAULT_AUTOMACOES: Automacao[] = [
@@ -100,85 +85,25 @@ const DEFAULT_AUTOMACOES: Automacao[] = [
 ];
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // ── Migration: clear old pre-seeded data so only master user + empty data remains ──
-  (() => {
-    // Clear old users
-    const rawU = localStorage.getItem('mf_usuarios');
-    if (rawU) {
-      const parsed: Usuario[] = JSON.parse(rawU);
-      const hasOldUsers = parsed.some(u => ['u1','u2','u3','u4','u5','u6'].includes(u.id));
-      if (hasOldUsers) {
-        const cleaned = parsed.filter(u => u.id === 'master1' || u.id.startsWith('u_'));
-        localStorage.setItem('mf_usuarios', JSON.stringify(cleaned));
-      }
-    }
-    // Clear old pre-seeded clientes, contatos, demandas, etc.
-    const oldClientIds = ['c1','c2','c3'];
-    const rawC = localStorage.getItem('mf_clientes');
-    if (rawC) {
-      const parsed = JSON.parse(rawC);
-      if (parsed.some((c: any) => oldClientIds.includes(c.id))) {
-        localStorage.removeItem('mf_clientes');
-        localStorage.removeItem('mf_contatos');
-        localStorage.removeItem('mf_demandas');
-        localStorage.removeItem('mf_aprovacoes');
-        localStorage.removeItem('mf_comentarios');
-        localStorage.removeItem('mf_historicos');
-        localStorage.removeItem('mf_whatsapp');
-      }
-    }
-  })();
+  const [usuarios, setUsuarios] = useState<Usuario[]>(DEFAULT_USUARIOS);
+  const [clientes, setClientes] = useState<Cliente[]>(DEFAULT_CLIENTES);
+  const [contatos, setContatos] = useState<Contato[]>(DEFAULT_CONTATOS);
+  const [demandas, setDemandas] = useState<Demanda[]>(DEFAULT_DEMANDAS);
+  const [aprovacoes, setAprovacoes] = useState<Aprovacao[]>(DEFAULT_APROVACOES);
+  const [comentarios, setComentarios] = useState<Comentario[]>(DEFAULT_COMENTARIOS);
+  const [historicos, setHistoricos] = useState<Historico[]>(DEFAULT_HISTORICOS);
+  const [mensagensWhatsapp, setMensagensWhatsapp] = useState<MensagemWhatsapp[]>(DEFAULT_WHATSAPP);
+  const [automacoes, setAutomacoes] = useState<Automacao[]>(DEFAULT_AUTOMACOES);
+  const [itensPlanejamento, setItensPlanejamento] = useState<ItemPlanejamento[]>([]);
+  const [aiLogs, setAiLogs] = useState<string[]>([]);
 
   const [currentUsuario, setCurrentUsuario] = useState<Usuario>(() => {
     const saved = localStorage.getItem('mf_current_user');
     return saved ? JSON.parse(saved) : DEFAULT_USUARIOS[0];
   });
-
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
     const saved = localStorage.getItem('mf_is_logged_in');
     return saved === 'true';
-  });
-
-  const [usuarios, setUsuarios] = useState<Usuario[]>(() => {
-    const saved = localStorage.getItem('mf_usuarios');
-    return saved ? JSON.parse(saved) : DEFAULT_USUARIOS;
-  });
-  const [clientes, setClientes] = useState<Cliente[]>(() => {
-    const saved = localStorage.getItem('mf_clientes');
-    return saved ? JSON.parse(saved) : DEFAULT_CLIENTES;
-  });
-  const [contatos, setContatos] = useState<Contato[]>(() => {
-    const saved = localStorage.getItem('mf_contatos');
-    return saved ? JSON.parse(saved) : DEFAULT_CONTATOS;
-  });
-  const [demandas, setDemandas] = useState<Demanda[]>(() => {
-    const saved = localStorage.getItem('mf_demandas');
-    return saved ? JSON.parse(saved) : DEFAULT_DEMANDAS;
-  });
-  const [aprovacoes, setAprovacoes] = useState<Aprovacao[]>(() => {
-    const saved = localStorage.getItem('mf_aprovacoes');
-    return saved ? JSON.parse(saved) : DEFAULT_APROVACOES;
-  });
-  const [comentarios, setComentarios] = useState<Comentario[]>(() => {
-    const saved = localStorage.getItem('mf_comentarios');
-    return saved ? JSON.parse(saved) : DEFAULT_COMENTARIOS;
-  });
-  const [historicos, setHistoricos] = useState<Historico[]>(() => {
-    const saved = localStorage.getItem('mf_historicos');
-    return saved ? JSON.parse(saved) : DEFAULT_HISTORICOS;
-  });
-  const [mensagensWhatsapp, setMensagensWhatsapp] = useState<MensagemWhatsapp[]>(() => {
-    const saved = localStorage.getItem('mf_whatsapp');
-    return saved ? JSON.parse(saved) : DEFAULT_WHATSAPP;
-  });
-  const [automacoes, setAutomacoes] = useState<Automacao[]>(() => {
-    const saved = localStorage.getItem('mf_automacoes');
-    return saved ? JSON.parse(saved) : DEFAULT_AUTOMACOES;
-  });
-  const [aiLogs, setAiLogs] = useState<string[]>([]);
-  const [itensPlanejamento, setItensPlanejamento] = useState<ItemPlanejamento[]>(() => {
-    const saved = localStorage.getItem('mf_planejamentos');
-    return saved ? JSON.parse(saved) : [];
   });
 
   const [activeView, setActiveView] = useState<string>(() => {
@@ -196,7 +121,32 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return saved || '';
   });
 
-  // Sync to localStorage
+  // Load database tables from the backend Express API on mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const response = await fetch('/api/all-data');
+        if (!response.ok) throw new Error('Falha ao conectar com o MariaDB');
+        const data = await response.json();
+        
+        if (data.usuarios && data.usuarios.length > 0) setUsuarios(data.usuarios);
+        if (data.clientes) setClientes(data.clientes);
+        if (data.contatos) setContatos(data.contatos);
+        if (data.demandas) setDemandas(data.demandas);
+        if (data.comentarios) setComentarios(data.comentarios);
+        if (data.historicos) setHistoricos(data.historicos);
+        if (data.aprovacoes) setAprovacoes(data.aprovacoes);
+        if (data.mensagensWhatsapp) setMensagensWhatsapp(data.mensagensWhatsapp);
+        if (data.automacoes && data.automacoes.length > 0) setAutomacoes(data.automacoes);
+        if (data.itensPlanejamento) setItensPlanejamento(data.itensPlanejamento);
+      } catch (err) {
+        console.error('[DataContext] Erro ao carregar dados do MariaDB local:', err);
+      }
+    };
+    loadData();
+  }, []);
+
+  // Sync session states locally
   useEffect(() => {
     localStorage.setItem('mf_active_view', activeView);
   }, [activeView]);
@@ -208,6 +158,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     localStorage.setItem('mf_selected_approval_demand_id', selectedApprovalDemandId);
   }, [selectedApprovalDemandId]);
+
   useEffect(() => {
     localStorage.setItem('mf_current_user', JSON.stringify(currentUsuario));
   }, [currentUsuario]);
@@ -216,58 +167,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('mf_is_logged_in', String(isLoggedIn));
   }, [isLoggedIn]);
 
-  useEffect(() => {
-    localStorage.setItem('mf_usuarios', JSON.stringify(usuarios));
-  }, [usuarios]);
-
-  useEffect(() => {
-    localStorage.setItem('mf_clientes', JSON.stringify(clientes));
-  }, [clientes]);
-
-  useEffect(() => {
-    localStorage.setItem('mf_contatos', JSON.stringify(contatos));
-  }, [contatos]);
-
-  useEffect(() => {
-    localStorage.setItem('mf_demandas', JSON.stringify(demandas));
-  }, [demandas]);
-
-  useEffect(() => {
-    localStorage.setItem('mf_aprovacoes', JSON.stringify(aprovacoes));
-  }, [aprovacoes]);
-
-  useEffect(() => {
-    localStorage.setItem('mf_comentarios', JSON.stringify(comentarios));
-  }, [comentarios]);
-
-  useEffect(() => {
-    localStorage.setItem('mf_historicos', JSON.stringify(historicos));
-  }, [historicos]);
-
-  useEffect(() => {
-    localStorage.setItem('mf_whatsapp', JSON.stringify(mensagensWhatsapp));
-  }, [mensagensWhatsapp]);
-
-  useEffect(() => {
-    localStorage.setItem('mf_automacoes', JSON.stringify(automacoes));
-  }, [automacoes]);
-
-  useEffect(() => {
-    localStorage.setItem('mf_planejamentos', JSON.stringify(itensPlanejamento));
-  }, [itensPlanejamento]);
-
   const resetDatabase = () => {
-    setUsuarios(DEFAULT_USUARIOS);
-    setClientes(DEFAULT_CLIENTES);
-    setContatos(DEFAULT_CONTATOS);
-    setDemandas(DEFAULT_DEMANDAS);
-    setAprovacoes(DEFAULT_APROVACOES);
-    setComentarios(DEFAULT_COMENTARIOS);
-    setHistoricos(DEFAULT_HISTORICOS);
-    setMensagensWhatsapp(DEFAULT_WHATSAPP);
-    setAutomacoes(DEFAULT_AUTOMACOES);
-    setItensPlanejamento([]);
-    setAiLogs([]);
+    // Para banco real, apenas limpa session storage do front
     setCurrentUsuario(DEFAULT_USUARIOS[0]);
     setIsLoggedIn(false);
     localStorage.clear();
@@ -275,17 +176,28 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addUsuario = (usuario: Usuario) => {
     setUsuarios(prev => [...prev, usuario]);
+    fetch('/api/usuarios', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(usuario)
+    }).catch(err => console.error(err));
   };
 
   // ACTIONS
   const addDemanda = (newDem: Omit<Demanda, 'id' | 'criadoEm' | 'slaEstourado'>) => {
     const dem: Demanda = {
       ...newDem,
-      id: 'd' + (demandas.length + 1),
+      id: 'd' + (demandas.length + 1) + '_' + Date.now().toString().slice(-4),
       criadoEm: new Date().toISOString(),
       slaEstourado: false
     };
     setDemandas(prev => [dem, ...prev]);
+
+    fetch('/api/demandas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dem)
+    }).catch(err => console.error(err));
 
     // Audit Trail
     const hist: Historico = {
@@ -298,6 +210,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       criadoEm: new Date().toISOString()
     };
     setHistoricos(prev => [hist, ...prev]);
+    fetch('/api/historicos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(hist)
+    }).catch(err => console.error(err));
 
     // If there is an attachment URL, make a pending approval entry
     if (dem.anexos.length > 0) {
@@ -310,11 +227,21 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         status: 'Pendente'
       };
       setAprovacoes(prev => [...prev, ap]);
+      fetch('/api/aprovacoes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(ap)
+      }).catch(err => console.error(err));
     }
   };
 
   const updateDemanda = (updated: Demanda) => {
     setDemandas(prev => prev.map(d => d.id === updated.id ? updated : d));
+    fetch(`/api/demandas/${updated.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated)
+    }).catch(err => console.error(err));
   };
 
   const moveDemanda = (id: string, nextStatus: StatusDemanda, usuarioNome?: string) => {
@@ -333,7 +260,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           criadoEm: new Date().toISOString()
         };
         setHistoricos(h => [hist, ...h]);
-        return { ...d, status: nextStatus };
+        fetch('/api/historicos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(hist)
+        }).catch(err => console.error(err));
+
+        const updated = { ...d, status: nextStatus };
+        fetch(`/api/demandas/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updated)
+        }).catch(err => console.error(err));
+
+        return updated;
       }
       return d;
     }));
@@ -354,6 +294,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       criadoEm: new Date().toISOString()
     };
     setComentarios(prev => [...prev, coment]);
+    fetch('/api/comentarios', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(coment)
+    }).catch(err => console.error(err));
 
     // History Log
     const hist: Historico = {
@@ -366,6 +311,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       criadoEm: new Date().toISOString()
     };
     setHistoricos(prev => [hist, ...prev]);
+    fetch('/api/historicos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(hist)
+    }).catch(err => console.error(err));
   };
 
   const processarAprovacao = (
@@ -377,7 +327,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   ) => {
     setAprovacoes(prev => prev.map(a => {
       if (a.id === aprovacaoId) {
-        return {
+        const updated = {
           ...a,
           status,
           usuarioNome,
@@ -385,6 +335,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           ipAddress: '189.' + Math.floor(Math.random() * 255) + '.' + Math.floor(Math.random() * 255) + '.' + Math.floor(Math.random() * 255),
           observacao
         };
+        fetch(`/api/aprovacoes/${aprovacaoId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updated)
+        }).catch(err => console.error(err));
+        return updated;
       }
       return a;
     }));
@@ -400,6 +356,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       criadoEm: new Date().toISOString()
     };
     setHistoricos(prev => [hist, ...prev]);
+    fetch('/api/historicos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(hist)
+    }).catch(err => console.error(err));
 
     // Automatic Kanban movements and notifications based on Automations
     let targetStatus: StatusDemanda | null = null;
@@ -410,22 +371,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (targetStatus) {
-      setDemandas(prev => prev.map(d => {
-        if (d.id === demandaId) {
-          const automatedHist: Historico = {
-            id: 'h_auto_' + Date.now(),
-            demandaId,
-            usuarioNome: 'Sistema (Automação)',
-            acao: 'Atualizou Kanban por aprovação',
-            detalhes: `Status alterado de "${d.status}" para "${targetStatus}"`,
-            tipo: 'status',
-            criadoEm: new Date().toISOString()
-          };
-          setHistoricos(h => [automatedHist, ...h]);
-          return { ...d, status: targetStatus! };
-        }
-        return d;
-      }));
+      moveDemanda(demandaId, targetStatus, 'Sistema (Automação)');
     }
 
     // Trigger success triggers if active
@@ -433,11 +379,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const activeClient = clientes.find(c => c.id === (demandas.find(d => d.id === demandaId)?.clienteId));
       if (activeClient) {
         // Increment approval counts
-        setClientes(prev => prev.map(c => c.id === activeClient.id ? {
-          ...c,
-          aprovacoesContadas: c.aprovacoesContadas + 1,
-          tempoMedioResposta: Math.max(1, +(c.tempoMedioResposta * 0.95).toFixed(1)) // SLA improves on quick approvals
-        } : c));
+        const updatedCli = {
+          ...activeClient,
+          aprovacoesContadas: activeClient.aprovacoesContadas + 1,
+          tempoMedioResposta: Math.max(1, +(activeClient.tempoMedioResposta * 0.95).toFixed(1))
+        };
+        setClientes(prev => prev.map(c => c.id === activeClient.id ? updatedCli : c));
+        fetch(`/api/clientes/${activeClient.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedCli)
+        }).catch(err => console.error(err));
 
         // Create success notification log
         const alertLog = `Automação executada: Notificado Designer Lucas Medeiros sobre aprovação de João Silva (${activeClient.nomeFantasia}). Whatsapp de confirmação disparado.`;
@@ -458,6 +410,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     setMensagensWhatsapp(prev => [...prev, msg]);
+    fetch('/api/mensagens-whatsapp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(msg)
+    }).catch(err => console.error(err));
 
     // Handle Client incoming message -> TRIGGERS CONVERSATIONAL AI ASSISTANT
     if (direcao === 'entrada') {
@@ -513,7 +470,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Mark approval as adjustment requested
           const pAprov = aprovacoes.find(a => a.demandaId === activeDemanda.id && a.status === 'Pendente');
           if (pAprov) {
-            setAprovacoes(prev => prev.map(a => a.id === pAprov.id ? { ...a, status: 'Ajuste Solicitado', observacao: mensagem.conteudo, usuarioNome: clienteObj.nomeFantasia } : a));
+            const updatedAp = { ...pAprov, status: 'Ajuste Solicitado' as any, observacao: mensagem.conteudo, usuarioNome: clienteObj.nomeFantasia };
+            setAprovacoes(prev => prev.map(a => a.id === pAprov.id ? updatedAp : a));
+            fetch(`/api/aprovacoes/${pAprov.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(updatedAp)
+            }).catch(err => console.error(err));
           }
         } else {
           resposta = `Entendido! Deseja solicitar um ajuste? Por favor, me informe qual o título ou o link do arquivo para que eu possa encaminhar à equipe de criação.`;
@@ -543,7 +506,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
       } else {
-        // General conversational response
         resposta = `Olá ${clienteObj.nomeFantasia}! Sou o assistente inteligente da agência. 🤖\n\nPosso te ajudar a:\n✅ *Aprovar* artes (basta dizer "Aprovado")\n✍️ *Pedir Ajustes* (ex: "Troque o preço para R$ 19,99")\n📊 *Listar Demandas* pendentes\n🔗 *Reenviar links* de aprovação.`;
         logAi = `IA respondeu com ajuda interativa para texto não mapeado: "${mensagem.conteudo}"`;
       }
@@ -559,6 +521,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         criadoEm: new Date().toISOString()
       };
       setMensagensWhatsapp(prev => [...prev, msgReply]);
+      fetch('/api/mensagens-whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(msgReply)
+      }).catch(err => console.error(err));
 
       if (logAi) {
         setAiLogs(prev => [logAi, ...prev]);
@@ -575,6 +542,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             criadoEm: new Date().toISOString()
           };
           setHistoricos(prev => [hist, ...prev]);
+          fetch('/api/historicos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(hist)
+          }).catch(err => console.error(err));
         }
       }
     }, 1200);
@@ -583,21 +555,37 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const addCliente = (newCli: Omit<Cliente, 'id' | 'nivelEngajamento' | 'tempoMedioResposta' | 'atrasosContados' | 'aprovacoesContadas'>) => {
     const cli: Cliente = {
       ...newCli,
-      id: 'c' + (clientes.length + 1),
+      id: 'c' + (clientes.length + 1) + '_' + Date.now().toString().slice(-4),
       nivelEngajamento: 'excelente',
       tempoMedioResposta: 0,
       atrasosContados: 0,
       aprovacoesContadas: 0
     };
     setClientes(prev => [...prev, cli]);
+    fetch('/api/clientes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cli)
+    }).catch(err => console.error(err));
   };
 
   const updateCliente = (updated: Cliente) => {
     setClientes(prev => prev.map(c => c.id === updated.id ? updated : c));
+    fetch(`/api/clientes/${updated.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated)
+    }).catch(err => console.error(err));
   };
 
   const updateContato = (updated: Contato) => {
     setContatos(prev => prev.map(c => c.id === updated.id ? { ...c, ...updated } : c));
+    fetch(`/api/contatos/${updated.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated)
+    }).catch(err => console.error(err));
+
     if (currentUsuario && currentUsuario.id === updated.id) {
       setCurrentUsuario({
         ...currentUsuario,
@@ -613,13 +601,30 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateUsuario = (updated: Usuario) => {
     setUsuarios(prev => prev.map(u => u.id === updated.id ? updated : u));
+    fetch(`/api/usuarios/${updated.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated)
+    }).catch(err => console.error(err));
+
     if (currentUsuario && currentUsuario.id === updated.id) {
       setCurrentUsuario(updated);
     }
   };
 
   const toggleAutomacao = (id: string) => {
-    setAutomacoes(prev => prev.map(a => a.id === id ? { ...a, ativa: !a.ativa } : a));
+    setAutomacoes(prev => prev.map(a => {
+      if (a.id === id) {
+        const updated = { ...a, ativa: !a.ativa };
+        fetch(`/api/automacoes/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updated)
+        }).catch(err => console.error(err));
+        return updated;
+      }
+      return a;
+    }));
   };
 
   const simularPrazoVencido = (demandaId: string) => {
@@ -627,7 +632,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!dem) return;
     
     // Mark SLA as estourado
-    setDemandas(prev => prev.map(d => d.id === demandaId ? { ...d, slaEstourado: true } : d));
+    const updatedDem = { ...dem, slaEstourado: true };
+    setDemandas(prev => prev.map(d => d.id === demandaId ? updatedDem : d));
+    fetch(`/api/demandas/${demandaId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedDem)
+    }).catch(err => console.error(err));
 
     // Get client contact priorities
     const clienteContatos = contatos.filter(c => c.clienteId === dem.clienteId).sort((a, b) => a.prioridadeEscalonamento - b.prioridadeEscalonamento);
@@ -647,28 +658,47 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       enviarMensagemWhatsApp(dem.clienteId, cobranca, 'saida');
 
       // Update client stats
-      setClientes(prev => prev.map(c => c.id === dem.clienteId ? {
-        ...c,
-        atrasosContados: c.atrasosContados + 1,
-        nivelEngajamento: c.atrasosContados > 3 ? 'critico' : 'regular'
-      } : c));
+      const updatedCli = {
+        ...cli,
+        atrasosContados: cli.atrasosContados + 1,
+        nivelEngajamento: 'critico' as any
+      };
+      setClientes(prev => prev.map(c => c.id === dem.clienteId ? updatedCli : c));
+      fetch(`/api/clientes/${cli.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedCli)
+      }).catch(err => console.error(err));
     }
   };
 
   const addItemPlanejamento = (item: Omit<ItemPlanejamento, 'id'>) => {
     const newItem: ItemPlanejamento = {
       ...item,
-      id: 'pl_' + Date.now()
+      id: 'pl_' + Date.now().toString().slice(-6)
     };
     setItensPlanejamento(prev => [...prev, newItem]);
+    fetch('/api/itens-planejamento', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newItem)
+    }).catch(err => console.error(err));
   };
 
   const updateItemPlanejamento = (updated: ItemPlanejamento) => {
     setItensPlanejamento(prev => prev.map(item => item.id === updated.id ? updated : item));
+    fetch(`/api/itens-planejamento/${updated.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated)
+    }).catch(err => console.error(err));
   };
 
   const deleteItemPlanejamento = (id: string) => {
     setItensPlanejamento(prev => prev.filter(item => item.id !== id));
+    fetch(`/api/itens-planejamento/${id}`, {
+      method: 'DELETE'
+    }).catch(err => console.error(err));
   };
 
   const converterPlanejamentoEmDemanda = (id: string) => {
@@ -679,7 +709,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    const demandId = 'd_' + Date.now();
+    const demandId = 'd_' + Date.now().toString().slice(-6);
     
     // Add demand
     const newDemand: Demanda = {
@@ -699,9 +729,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     setDemandas(prev => [...prev, newDemand]);
+    fetch('/api/demandas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newDemand)
+    }).catch(err => console.error(err));
 
     // Link demand in planning list
-    setItensPlanejamento(prev => prev.map(item => item.id === id ? { ...item, demandaGeradaId: demandId } : item));
+    const updatedPlanning = { ...planningItem, demandaGeradaId: demandId };
+    setItensPlanejamento(prev => prev.map(item => item.id === id ? updatedPlanning : item));
+    fetch(`/api/itens-planejamento/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedPlanning)
+    }).catch(err => console.error(err));
 
     // Log history
     const newHistory: Historico = {
@@ -714,6 +755,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       criadoEm: new Date().toISOString()
     };
     setHistoricos(prev => [...prev, newHistory]);
+    fetch('/api/historicos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newHistory)
+    }).catch(err => console.error(err));
   };
 
   return (

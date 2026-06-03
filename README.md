@@ -185,3 +185,55 @@ Para o uso diário, prefira sempre:
 - PROMPT_NODEJS_INITDB_PORTAINER.md
 
 Esse é o prompt mais alinhado com o padrão atual da equipe.
+
+---
+
+## 🛠️ Guia de Desenvolvimento Local com MariaDB
+
+Para executar e testar o projeto localmente com integração real ao MariaDB, siga as instruções abaixo:
+
+### Opção A: Rodando MariaDB via Docker (Recomendado)
+Para rodar sem precisar instalar o MariaDB nativamente no seu macOS:
+1. Certifique-se de que o **Docker Desktop** está iniciado.
+2. Execute o script auxiliar fornecido na raiz do projeto:
+   ```bash
+   ./run-local-db.sh
+   ```
+3. O script criará e iniciará automaticamente um container MariaDB na porta padrão `3306` com o usuário `root` e senha `30mariafn@`, configurando o banco `flowai`.
+
+### Opção B: Rodando MariaDB Nativo (Homebrew no macOS)
+Se preferir instalar o banco local direto na sua máquina:
+1. Instale o MariaDB via Homebrew:
+   ```bash
+   brew install mariadb
+   ```
+2. Inicie o serviço do MariaDB:
+   ```bash
+   brew services start mariadb
+   ```
+3. Configure a senha padrão do usuário `root` para bater com o padrão da equipe (`30mariafn@`):
+   ```bash
+   mariadb-admin -u root password '30mariafn@'
+   ```
+4. Crie manualmente o banco de dados do projeto:
+   ```bash
+   mariadb -u root -p'30mariafn@' -e "CREATE DATABASE IF NOT EXISTS flowai;"
+   ```
+
+### Executando a Aplicação
+Depois de subir o banco local por qualquer uma das opções acima:
+1. Inicialize as tabelas e insira as sementes iniciais de teste:
+   ```bash
+   npm run initdb
+   ```
+2. Compile o frontend React:
+   ```bash
+   npm run build
+   ```
+3. Inicie o servidor local Node.js (que responderá pela aplicação na porta `3000` e servirá a API + Documentação Swagger):
+   ```bash
+   npm run start
+   ```
+4. Acesse os serviços no navegador:
+   - Aplicação M.O FLOW: `http://localhost:3000/`
+   - Documentação Interativa da API (Swagger UI): `http://localhost:3000/api-docs`
