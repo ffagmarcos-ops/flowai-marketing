@@ -61,9 +61,7 @@ services:
       PMA_ARBITRARY: 0
       PMA_HOST: flowai_db
       PMA_PORT: 3306
-      PMA_USER: root
-      PMA_PASSWORD: "30mariafn@"
-      PMA_AUTH_TYPE: config
+      PMA_AUTH_TYPE: cookie
       PMA_ABSOLUTE_URI: https://phpmyadmin.flowai.digmidia.com/
       UPLOAD_LIMIT: 64M
     networks:
