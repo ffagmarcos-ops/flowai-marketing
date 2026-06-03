@@ -501,7 +501,11 @@ app.post('/api/login', async (req, res) => {
       if (contacts.length > 0) {
         const contact = contacts[0];
         if (verifyPassword(password, contact.password)) {
-          return res.json({ success: true, type: 'contato', contact });
+          const parsedContact = {
+            ...contact,
+            acessos: safeParse(contact.acessos)
+          };
+          return res.json({ success: true, type: 'contato', contact: parsedContact });
         }
       }
       // Check agency users just in case

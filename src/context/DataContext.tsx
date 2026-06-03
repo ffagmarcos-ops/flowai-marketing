@@ -52,6 +52,7 @@ interface DataContextType {
   enviarMensagemWhatsApp: (clienteId: string, conteudo: string, direcao: 'entrada' | 'saida') => void;
   addCliente: (cliente: Omit<Cliente, 'id' | 'nivelEngajamento' | 'tempoMedioResposta' | 'atrasosContados' | 'aprovacoesContadas'>) => void;
   updateCliente: (cliente: Cliente) => void;
+  addContato: (contato: Contato) => void;
   updateContato: (contato: Contato) => void;
   updateUsuario: (usuario: Usuario) => void;
   toggleAutomacao: (id: string) => void;
@@ -613,6 +614,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }).catch(err => console.error(err));
   };
 
+  const addContato = (contato: Contato) => {
+    setContatos(prev => [...prev, contato]);
+    fetch('/api/contatos', {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(contato)
+    }).catch(err => console.error(err));
+  };
+
   const updateContato = (updated: Contato) => {
     setContatos(prev => prev.map(c => c.id === updated.id ? { ...c, ...updated } : c));
     fetch(`/api/contatos/${updated.id}`, {
@@ -832,6 +842,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       enviarMensagemWhatsApp,
       addCliente,
       updateCliente,
+      addContato,
       updateContato,
       updateUsuario,
       toggleAutomacao,

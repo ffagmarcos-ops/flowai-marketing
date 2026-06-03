@@ -25,6 +25,7 @@ export const CRMView: React.FC = () => {
     contatos, 
     addCliente, 
     updateCliente, 
+    addContato,
     updateContato, 
     currentUsuario, 
     setActiveView, 
@@ -149,15 +150,12 @@ export const CRMView: React.FC = () => {
       password: contactSenha
     };
 
-    // Store reactively
-    const saved = localStorage.getItem('mf_contatos');
-    const existing: Contato[] = saved ? JSON.parse(saved) : contatos;
-    const updated = [...existing, newContact];
-    localStorage.setItem('mf_contatos', JSON.stringify(updated));
+    // Store reactively via database context API
+    addContato(newContact);
     setContactFotoUrl('');
     setContactLogin('');
     setContactSenha('');
-    window.location.reload();
+    setShowContactModal(false);
   };
 
   const handleUpdateCliente = (e: React.FormEvent) => {

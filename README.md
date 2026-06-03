@@ -235,5 +235,13 @@ Depois de subir o banco local por qualquer uma das opções acima:
    npm run start
    ```
 4. Acesse os serviços no navegador:
-   - Aplicação M.O FLOW: `http://localhost:3000/`
-   - Documentação Interativa da API (Swagger UI): `http://localhost:3000/api-docs`
+   - Aplicação M.O FLOW (Local): [http://localhost:3000/](http://localhost:3000/)
+   - Documentação de API Swagger (Local): [http://localhost:3000/api-docs](http://localhost:3000/api-docs)
+
+### 🌐 Acessos e URLs em Produção
+
+Após a subida da stack no Portainer configurada com o Traefik, os links operacionais oficiais são:
+
+- **Aplicação M.O FLOW (Produção):** [https://flowai.digmidia.com/](https://flowai.digmidia.com/)
+- **Documentação Interativa da API (Swagger UI):** [https://flowai.digmidia.com/api-docs](https://flowai.digmidia.com/api-docs)
+- **Gerenciador phpMyAdmin:** [https://phpmyadmin.flowai.digmidia.com/](https://phpmyadmin.flowai.digmidia.com/)
