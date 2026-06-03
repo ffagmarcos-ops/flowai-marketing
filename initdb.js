@@ -219,6 +219,48 @@ async function init() {
       );
     `);
 
+    // Ensure apiToken and password columns exist in usuarios (defensive migrations for existing tables)
+    try {
+      await db.query('ALTER TABLE usuarios ADD COLUMN apiToken VARCHAR(255)');
+      console.log('[INITDB] Migração: Adicionada coluna apiToken em usuarios.');
+    } catch (e) {
+      // ignore
+    }
+    try {
+      await db.query('ALTER TABLE usuarios ADD COLUMN password VARCHAR(255)');
+      console.log('[INITDB] Migração: Adicionada coluna password em usuarios.');
+    } catch (e) {
+      // ignore
+    }
+
+    // Ensure apiToken and password columns exist in contatos (defensive migrations for existing tables)
+    try {
+      await db.query('ALTER TABLE contatos ADD COLUMN apiToken VARCHAR(255)');
+      console.log('[INITDB] Migração: Adicionada coluna apiToken em contatos.');
+    } catch (e) {
+      // ignore
+    }
+    try {
+      await db.query('ALTER TABLE contatos ADD COLUMN password VARCHAR(255)');
+      console.log('[INITDB] Migração: Adicionada coluna password em contatos.');
+    } catch (e) {
+      // ignore
+    }
+
+    // Ensure default master admin user has correct password and token if table already exists
+    try {
+      const encryptedDefaultPass = hashPassword('after2026');
+      await db.query(`
+        UPDATE usuarios 
+        SET apiToken = COALESCE(apiToken, 'flowai_tk_master_admin_default_integration_key'),
+            password = COALESCE(password, ?)
+        WHERE id = 'master1'
+      `, [encryptedDefaultPass]);
+      console.log('[INITDB] Migração: Usuário master1 garantido com password e token válidos.');
+    } catch (e) {
+      console.log('[INITDB] Erro ao garantir dados do usuário master1:', e.message);
+    }
+
     console.log('[INITDB] Tabelas verificadas. Inserindo dados iniciais (seeds) se necessário...');
 
     // Seed Usuarios

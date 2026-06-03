@@ -614,13 +614,23 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }).catch(err => console.error(err));
   };
 
-  const addContato = (contato: Contato) => {
+  const addContato = async (contato: Contato) => {
     setContatos(prev => [...prev, contato]);
-    fetch('/api/contatos', {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify(contato)
-    }).catch(err => console.error(err));
+    try {
+      const response = await fetch('/api/contatos', {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(contato)
+      });
+      if (!response.ok) {
+        const errData = await response.json();
+        console.error('[DataContext] Erro ao salvar contato no MariaDB:', errData);
+        alert('Erro ao salvar contato no banco de dados: ' + (errData.error || response.statusText));
+      }
+    } catch (err) {
+      console.error('[DataContext] Erro de rede ao salvar contato:', err);
+      alert('Erro de rede ao salvar contato.');
+    }
   };
 
   const updateContato = (updated: Contato) => {
