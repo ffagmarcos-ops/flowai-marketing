@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  flowai_app:
+    build: .
+    container_name: flowai_app
+    restart: always
+    depends_on:
+      flowai_db:
+        condition: service_healthy
+    environment:
+      PORT: "3000"
+      DB_HOST: flowai_db
+      DB_PORT: "3306"
+      DB_USER: root
+      DB_PASSWORD: "30mariafn@"
+      DB_NAME: flowai
+    networks:
+      - traefik
+      - flowai_internal
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.flowai.rule: "Host(`flowai.digmidia.com`)"
+      traefik.http.routers.flowai.entrypoints: "websecure"
+      traefik.http.routers.flowai.tls.certresolver: "myresolver"
+      traefik.http.services.flowai.loadbalancer.server.port: "3000"
+      traefik.http.routers.flowai.priority: "50"
+      traefik.docker.network: traefik
+
+  flowai_db:
+    image: mariadb:10.11
+    container_name: flowai_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "30mariafn@"
+      MYSQL_DATABASE: flowai
+    volumes:
+      - flowai_db:/var/lib/mysql
+    networks:
+      - flowai_internal
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p30mariafn@"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
+
+  flowai_phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: flowai_phpmyadmin
+    restart: always
+    depends_on:
+      - flowai_db
+    environment:
+      PMA_HOST: flowai_db
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: "30mariafn@"
+      PMA_ABSOLUTE_URI: https://phpmyadmin.flowai.digmidia.com/
+      UPLOAD_LIMIT: 64M
+    networks:
+      - traefik
+      - flowai_internal
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.flowai-pma.rule: "Host(`phpmyadmin.flowai.digmidia.com`)"
+      traefik.http.routers.flowai-pma.entrypoints: "websecure"
+      traefik.http.routers.flowai-pma.tls.certresolver: "myresolver"
+      traefik.http.services.flowai-pma.loadbalancer.server.port: "80"
+      traefik.docker.network: traefik
+
+networks:
+  traefik:
+    external: true
+  flowai_internal:
+    driver: bridge
+
+volumes:
+  flowai_db:
