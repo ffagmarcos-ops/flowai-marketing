@@ -9,5 +9,4 @@ build/
 .dockerignore
 Dockerfile
 docker-compose.yml
-entrypoint.sh
 Arquivo.zip
