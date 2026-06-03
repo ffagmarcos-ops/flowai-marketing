@@ -25,8 +25,8 @@ export const CRMView: React.FC = () => {
     contatos, 
     addCliente, 
     updateCliente, 
-    addContato,
     updateContato, 
+    addContato,
     currentUsuario, 
     setActiveView, 
     setSelectedCalendarClientId 
@@ -150,8 +150,14 @@ export const CRMView: React.FC = () => {
       password: contactSenha
     };
 
-    // Store reactively via database context API
     addContato(newContact);
+    setContactNome('');
+    setContactCargo('');
+    setContactTelefone('');
+    setContactWhatsapp('');
+    setContactEmail('');
+    setContactPriority(1);
+    setSelectedAccesses(['Aprovações de Criativos']);
     setContactFotoUrl('');
     setContactLogin('');
     setContactSenha('');

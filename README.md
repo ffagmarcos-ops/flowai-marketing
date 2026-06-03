@@ -1,3 +1,14 @@
+# M.O FLOW - Gestão de Marketing Inteligente
+
+## 🌐 URLs de Produção / Homologação
+
+As URLs oficiais de deploy do sistema em produção são:
+- **Aplicação Principal M.O FLOW:** [https://flowai.digmidia.com](https://flowai.digmidia.com)
+- **Documentação da API (Swagger UI):** [https://flowai.digmidia.com/api-docs](https://flowai.digmidia.com/api-docs)
+- **Gerenciamento do Banco de Dados (phpMyAdmin):** [https://phpmyadmin.flowai.digmidia.com](https://phpmyadmin.flowai.digmidia.com)
+
+---
+
 # Uso dos Prompts de Deploy
 
 Este diretório contém um fluxo padrão para gerar arquivos de deploy de novos projetos com base em arquivos de exemplo já validados pela equipe.
@@ -235,13 +246,5 @@ Depois de subir o banco local por qualquer uma das opções acima:
    npm run start
    ```
 4. Acesse os serviços no navegador:
-   - Aplicação M.O FLOW (Local): [http://localhost:3000/](http://localhost:3000/)
-   - Documentação de API Swagger (Local): [http://localhost:3000/api-docs](http://localhost:3000/api-docs)
-
-### 🌐 Acessos e URLs em Produção
-
-Após a subida da stack no Portainer configurada com o Traefik, os links operacionais oficiais são:
-
-- **Aplicação M.O FLOW (Produção):** [https://flowai.digmidia.com/](https://flowai.digmidia.com/)
-- **Documentação Interativa da API (Swagger UI):** [https://flowai.digmidia.com/api-docs](https://flowai.digmidia.com/api-docs)
-- **Gerenciador phpMyAdmin:** [https://phpmyadmin.flowai.digmidia.com/](https://phpmyadmin.flowai.digmidia.com/)
+   - Aplicação M.O FLOW: `http://localhost:3000/`
+   - Documentação Interativa da API (Swagger UI): `http://localhost:3000/api-docs`

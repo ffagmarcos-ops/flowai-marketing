@@ -52,8 +52,8 @@ interface DataContextType {
   enviarMensagemWhatsApp: (clienteId: string, conteudo: string, direcao: 'entrada' | 'saida') => void;
   addCliente: (cliente: Omit<Cliente, 'id' | 'nivelEngajamento' | 'tempoMedioResposta' | 'atrasosContados' | 'aprovacoesContadas'>) => void;
   updateCliente: (cliente: Cliente) => void;
-  addContato: (contato: Contato) => void;
   updateContato: (contato: Contato) => void;
+  addContato: (contato: Contato) => void;
   updateUsuario: (usuario: Usuario) => void;
   toggleAutomacao: (id: string) => void;
   simularPrazoVencido: (demandaId: string) => void;
@@ -842,8 +842,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       enviarMensagemWhatsApp,
       addCliente,
       updateCliente,
-      addContato,
       updateContato,
+      addContato,
       updateUsuario,
       toggleAutomacao,
       simularPrazoVencido,
