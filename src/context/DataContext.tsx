@@ -58,6 +58,7 @@ interface DataContextType {
   simularPrazoVencido: (demandaId: string) => void;
   resetDatabase: () => void;
   addUsuario: (usuario: Usuario) => void;
+  regenerarToken: (id: string, type: 'usuario' | 'contato') => Promise<void>;
   aiLogs: string[];
 }
 
@@ -121,6 +122,40 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return saved || '';
   });
 
+  const getHeaders = () => {
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${currentUsuario?.apiToken || ''}`
+    };
+  };
+
+  const regenerarToken = async (id: string, type: 'usuario' | 'contato') => {
+    try {
+      const response = await fetch(`/api/${type}s/${id}/token`, {
+        method: 'POST',
+        headers: getHeaders()
+      });
+      if (response.ok) {
+        const { apiToken } = await response.json();
+        if (type === 'usuario') {
+          setUsuarios(prev => prev.map(u => u.id === id ? { ...u, apiToken } : u));
+          if (currentUsuario.id === id) {
+            setCurrentUsuario(prev => ({ ...prev, apiToken }));
+          }
+        } else {
+          setContatos(prev => prev.map(c => c.id === id ? { ...c, apiToken } : c));
+          if (currentUsuario.id === id) {
+            setCurrentUsuario(prev => ({ ...prev, apiToken }));
+          }
+        }
+      } else {
+        console.error('Erro ao regenerar token: resposta inválida do servidor');
+      }
+    } catch (err) {
+      console.error('Erro ao regenerar token:', err);
+    }
+  };
+
   // Load database tables from the backend Express API on mount
   useEffect(() => {
     const loadData = async () => {
@@ -178,7 +213,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUsuarios(prev => [...prev, usuario]);
     fetch('/api/usuarios', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(usuario)
     }).catch(err => console.error(err));
   };
@@ -195,7 +230,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     fetch('/api/demandas', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(dem)
     }).catch(err => console.error(err));
 
@@ -212,7 +247,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setHistoricos(prev => [hist, ...prev]);
     fetch('/api/historicos', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(hist)
     }).catch(err => console.error(err));
 
@@ -229,7 +264,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAprovacoes(prev => [...prev, ap]);
       fetch('/api/aprovacoes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify(ap)
       }).catch(err => console.error(err));
     }
@@ -239,7 +274,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setDemandas(prev => prev.map(d => d.id === updated.id ? updated : d));
     fetch(`/api/demandas/${updated.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(updated)
     }).catch(err => console.error(err));
   };
@@ -262,14 +297,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setHistoricos(h => [hist, ...h]);
         fetch('/api/historicos', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getHeaders(),
           body: JSON.stringify(hist)
         }).catch(err => console.error(err));
 
         const updated = { ...d, status: nextStatus };
         fetch(`/api/demandas/${id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getHeaders(),
           body: JSON.stringify(updated)
         }).catch(err => console.error(err));
 
@@ -296,7 +331,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setComentarios(prev => [...prev, coment]);
     fetch('/api/comentarios', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(coment)
     }).catch(err => console.error(err));
 
@@ -313,7 +348,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setHistoricos(prev => [hist, ...prev]);
     fetch('/api/historicos', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(hist)
     }).catch(err => console.error(err));
   };
@@ -337,7 +372,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         fetch(`/api/aprovacoes/${aprovacaoId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getHeaders(),
           body: JSON.stringify(updated)
         }).catch(err => console.error(err));
         return updated;
@@ -358,7 +393,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setHistoricos(prev => [hist, ...prev]);
     fetch('/api/historicos', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(hist)
     }).catch(err => console.error(err));
 
@@ -387,7 +422,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setClientes(prev => prev.map(c => c.id === activeClient.id ? updatedCli : c));
         fetch(`/api/clientes/${activeClient.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getHeaders(),
           body: JSON.stringify(updatedCli)
         }).catch(err => console.error(err));
 
@@ -412,7 +447,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setMensagensWhatsapp(prev => [...prev, msg]);
     fetch('/api/mensagens-whatsapp', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(msg)
     }).catch(err => console.error(err));
 
@@ -474,7 +509,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setAprovacoes(prev => prev.map(a => a.id === pAprov.id ? updatedAp : a));
             fetch(`/api/aprovacoes/${pAprov.id}`, {
               method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
+              headers: getHeaders(),
               body: JSON.stringify(updatedAp)
             }).catch(err => console.error(err));
           }
@@ -523,7 +558,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setMensagensWhatsapp(prev => [...prev, msgReply]);
       fetch('/api/mensagens-whatsapp', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify(msgReply)
       }).catch(err => console.error(err));
 
@@ -544,7 +579,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setHistoricos(prev => [hist, ...prev]);
           fetch('/api/historicos', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getHeaders(),
             body: JSON.stringify(hist)
           }).catch(err => console.error(err));
         }
@@ -564,7 +599,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setClientes(prev => [...prev, cli]);
     fetch('/api/clientes', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(cli)
     }).catch(err => console.error(err));
   };
@@ -573,7 +608,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setClientes(prev => prev.map(c => c.id === updated.id ? updated : c));
     fetch(`/api/clientes/${updated.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(updated)
     }).catch(err => console.error(err));
   };
@@ -582,7 +617,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setContatos(prev => prev.map(c => c.id === updated.id ? { ...c, ...updated } : c));
     fetch(`/api/contatos/${updated.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(updated)
     }).catch(err => console.error(err));
 
@@ -603,7 +638,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUsuarios(prev => prev.map(u => u.id === updated.id ? updated : u));
     fetch(`/api/usuarios/${updated.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(updated)
     }).catch(err => console.error(err));
 
@@ -618,7 +653,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const updated = { ...a, ativa: !a.ativa };
         fetch(`/api/automacoes/${id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getHeaders(),
           body: JSON.stringify(updated)
         }).catch(err => console.error(err));
         return updated;
@@ -636,7 +671,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setDemandas(prev => prev.map(d => d.id === demandaId ? updatedDem : d));
     fetch(`/api/demandas/${demandaId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(updatedDem)
     }).catch(err => console.error(err));
 
@@ -666,7 +701,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setClientes(prev => prev.map(c => c.id === dem.clienteId ? updatedCli : c));
       fetch(`/api/clientes/${cli.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify(updatedCli)
       }).catch(err => console.error(err));
     }
@@ -680,7 +715,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setItensPlanejamento(prev => [...prev, newItem]);
     fetch('/api/itens-planejamento', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(newItem)
     }).catch(err => console.error(err));
   };
@@ -689,7 +724,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setItensPlanejamento(prev => prev.map(item => item.id === updated.id ? updated : item));
     fetch(`/api/itens-planejamento/${updated.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(updated)
     }).catch(err => console.error(err));
   };
@@ -697,7 +732,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const deleteItemPlanejamento = (id: string) => {
     setItensPlanejamento(prev => prev.filter(item => item.id !== id));
     fetch(`/api/itens-planejamento/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: getHeaders()
     }).catch(err => console.error(err));
   };
 
@@ -731,7 +767,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setDemandas(prev => [...prev, newDemand]);
     fetch('/api/demandas', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(newDemand)
     }).catch(err => console.error(err));
 
@@ -740,7 +776,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setItensPlanejamento(prev => prev.map(item => item.id === id ? updatedPlanning : item));
     fetch(`/api/itens-planejamento/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(updatedPlanning)
     }).catch(err => console.error(err));
 
@@ -757,7 +793,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setHistoricos(prev => [...prev, newHistory]);
     fetch('/api/historicos', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(newHistory)
     }).catch(err => console.error(err));
   };
@@ -802,6 +838,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       simularPrazoVencido,
       resetDatabase,
       addUsuario,
+      regenerarToken,
       aiLogs
     }}>
       {children}

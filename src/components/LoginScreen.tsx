@@ -25,7 +25,7 @@ const roleLabel: Record<RoleType, string> = {
 };
 
 export const LoginScreen: React.FC = () => {
-  const { usuarios, contatos, setCurrentUsuario, setIsLoggedIn, setActiveView } = useData();
+  const { usuarios, setCurrentUsuario, setIsLoggedIn, setActiveView } = useData();
 
   const [activeTab, setActiveTab] = useState<'master' | 'client'>('master');
 
@@ -42,35 +42,58 @@ export const LoginScreen: React.FC = () => {
   const agencyUsers = usuarios.filter(u => ['agencia', 'gestor', 'designer'].includes(u.role));
 
   // ── Handlers ─────────────────────────────────────────────────────────────
-  const handleConfirmPassword = () => {
+  const handleConfirmPassword = async () => {
     if (!pendingUser) return;
-    if ((pendingUser as any).password === promptPassword) {
-      setCurrentUsuario(pendingUser);
-      setIsLoggedIn(true);
-      setActiveView('dashboard');
-    } else {
-      setPromptError('Senha incorreta. Tente novamente.');
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: pendingUser.id, password: promptPassword })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCurrentUsuario(data.user);
+        setIsLoggedIn(true);
+        setActiveView('dashboard');
+      } else {
+        setPromptError('Senha incorreta. Tente novamente.');
+      }
+    } catch (err) {
+      setPromptError('Erro de conexão ao validar senha.');
     }
   };
 
-  const handleClientLogin = () => {
+  const handleClientLogin = async () => {
     setClientError('');
     const email = clientEmail.trim().toLowerCase();
-    const contact = contatos.find(c => c.email.toLowerCase() === email && (c as any).password === clientPassword);
-    if (!contact) { setClientError('E-mail ou senha inválidos.'); return; }
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: clientPassword })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const contact = data.contact;
+        const userObj: Usuario = {
+          id: contact.id, nome: contact.nome, email: contact.email,
+          telefone: contact.telefone, whatsapp: contact.whatsapp, cargo: contact.cargo,
+          role: 'cliente', agenciaId: 'ag1', clienteId: contact.clienteId,
+          apiToken: contact.apiToken, fotoUrl: contact.fotoUrl
+        };
+        setCurrentUsuario(userObj);
+        setIsLoggedIn(true);
 
-    const userObj: Usuario = {
-      id: contact.id, nome: contact.nome, email: contact.email,
-      telefone: contact.telefone, whatsapp: contact.whatsapp, cargo: contact.cargo,
-      role: 'cliente', agenciaId: 'ag1', clienteId: contact.clienteId,
-    };
-    setCurrentUsuario(userObj);
-    setIsLoggedIn(true);
-
-    // Client can only see: approvals + calendar for their company
-    const acc = contact.acessos || [];
-    if (acc.includes('Aprovações de Criativos')) setActiveView('approval');
-    else setActiveView('approval'); // default for clients
+        // Client can only see: approvals + calendar for their company
+        const acc = contact.acessos || [];
+        if (acc.includes('Aprovações de Criativos')) setActiveView('approval');
+        else setActiveView('approval'); // default for clients
+      } else {
+        setClientError('E-mail ou senha inválidos.');
+      }
+    } catch (err) {
+      setClientError('Erro de conexão ao realizar login.');
+    }
   };
 
   const inputStyle: React.CSSProperties = {

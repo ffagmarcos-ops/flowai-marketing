@@ -12,6 +12,7 @@ export interface Usuario {
   clienteId?: string; // If role is cliente or colaborador
   fotoUrl?: string;
   password?: string; // plain text for demo (should be hashed in production)
+  apiToken?: string;
 }
 
 export interface Agencia {
@@ -54,6 +55,7 @@ export interface Contato {
   acessos?: string[];
   fotoUrl?: string;
   password?: string; // login password for client portal access
+  apiToken?: string;
 }
 
 export type CategoriaDemanda = 'Encarte' | 'Rede Social' | 'Campanha' | 'Vídeo' | 'Impressos' | 'Site' | 'Promoção' | 'Evento' | 'Outros';

@@ -1,7 +1,8 @@
 import mysql from 'mysql2/promise';
+import crypto from 'crypto';
 
 const DEFAULT_USUARIOS = [
-  { id: 'master1', nome: 'M.O publicidade', email: 'master@flowai.com', telefone: '', whatsapp: '', cargo: 'Master Admin', role: 'agencia', agenciaId: 'ag1', password: 'after2026' }
+  { id: 'master1', nome: 'M.O publicidade', email: 'master@flowai.com', telefone: '', whatsapp: '', cargo: 'Master Admin', role: 'agencia', agenciaId: 'ag1', password: 'after2026', apiToken: 'flowai_tk_master_admin_default_integration_key' }
 ];
 
 const DEFAULT_AUTOMACOES = [
@@ -11,6 +12,13 @@ const DEFAULT_AUTOMACOES = [
   { id: 'au4', agenciaId: 'ag1', evento: 'prazo_vencido', acao: 'cobrar_whatsapp', ativa: true },
   { id: 'au5', agenciaId: 'ag1', evento: 'prazo_vencido', acao: 'escalonar_responsaveis', ativa: true }
 ];
+
+// Helper: secure hashing
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
+  return `${salt}:${hash}`;
+}
 
 async function init() {
   const host = process.env.DB_HOST || 'localhost';
@@ -58,7 +66,8 @@ async function init() {
         agenciaId VARCHAR(50) NOT NULL,
         clienteId VARCHAR(50),
         fotoUrl LONGTEXT,
-        password VARCHAR(255)
+        password VARCHAR(255),
+        apiToken VARCHAR(255)
       );
     `);
 
@@ -97,7 +106,8 @@ async function init() {
         prioridadeEscalonamento INT DEFAULT 1,
         acessos LONGTEXT,
         fotoUrl LONGTEXT,
-        password VARCHAR(255)
+        password VARCHAR(255),
+        apiToken VARCHAR(255)
       );
     `);
 
@@ -215,12 +225,13 @@ async function init() {
     const [userRows] = await db.query('SELECT COUNT(*) as count FROM usuarios');
     if (userRows[0].count === 0) {
       for (const u of DEFAULT_USUARIOS) {
+        const encryptedPass = hashPassword(u.password);
         await db.query(
-          'INSERT INTO usuarios (id, nome, email, telefone, whatsapp, cargo, role, agenciaId, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-          [u.id, u.nome, u.email, u.telefone, u.whatsapp, u.cargo, u.role, u.agenciaId, u.password]
+          'INSERT INTO usuarios (id, nome, email, telefone, whatsapp, cargo, role, agenciaId, password, apiToken) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [u.id, u.nome, u.email, u.telefone, u.whatsapp, u.cargo, u.role, u.agenciaId, encryptedPass, u.apiToken]
         );
       }
-      console.log('[INITDB] Seed: Usuário master inserido.');
+      console.log('[INITDB] Seed: Usuário master inserido com senha criptografada e token de integração.');
     }
 
     // Seed Automacoes
