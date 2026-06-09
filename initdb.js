@@ -249,28 +249,14 @@ async function init() {
 
     // Ensure default master admin user has correct password and token if table already exists
     try {
-      const [rows] = await db.query("SELECT password, apiToken FROM usuarios WHERE id = 'master1'");
+      const [rows] = await db.query("SELECT id FROM usuarios WHERE id = 'master1'");
       if (rows.length > 0) {
-        const u = rows[0];
-        let updateQuery = [];
-        let params = [];
-        
-        // If password is not hashed (doesn't contain ':'), update it
-        if (!u.password || !u.password.includes(':')) {
-          const encryptedDefaultPass = hashPassword('after2026');
-          updateQuery.push('password = ?');
-          params.push(encryptedDefaultPass);
-        }
-        
-        // If apiToken is not set, update it
-        if (!u.apiToken || u.apiToken === '') {
-          updateQuery.push("apiToken = 'flowai_tk_master_admin_default_integration_key'");
-        }
-        
-        if (updateQuery.length > 0) {
-          await db.query(`UPDATE usuarios SET ${updateQuery.join(', ')} WHERE id = 'master1'`, params);
-          console.log('[INITDB] Migração: Usuário master1 garantido com password criptografada e token de integração.');
-        }
+        const encryptedDefaultPass = hashPassword('after2026');
+        await db.query(
+          "UPDATE usuarios SET password = ?, apiToken = 'flowai_tk_master_admin_default_integration_key' WHERE id = 'master1'",
+          [encryptedDefaultPass]
+        );
+        console.log('[INITDB] Migração: Usuário master1 atualizado com password criptografada e token de integração.');
       }
     } catch (e) {
       console.log('[INITDB] Erro ao garantir dados do usuário master1:', e.message);
