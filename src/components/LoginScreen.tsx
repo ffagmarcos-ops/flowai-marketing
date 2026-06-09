@@ -44,6 +44,9 @@ export const LoginScreen: React.FC = () => {
   // ── Handlers ─────────────────────────────────────────────────────────────
   const handleConfirmPassword = async () => {
     if (!pendingUser) return;
+    let success = false;
+    let userToSet = pendingUser;
+
     try {
       const res = await fetch('/api/login', {
         method: 'POST',
@@ -52,27 +55,34 @@ export const LoginScreen: React.FC = () => {
       });
       if (res.ok) {
         const data = await res.json();
-        setCurrentUsuario(data.user);
-        setIsLoggedIn(true);
-        setActiveView('dashboard');
-      } else {
-        setPromptError('Senha incorreta. Tente novamente.');
+        userToSet = data.user;
+        success = true;
       }
     } catch (err) {
-      // Offline fallback: check against hardcoded password in client code or 'after2026'
+      console.warn('Erro de rede no login, usando fallback offline');
+    }
+
+    if (!success) {
       if (promptPassword === pendingUser.password || promptPassword === 'after2026') {
-        setCurrentUsuario(pendingUser);
-        setIsLoggedIn(true);
-        setActiveView('dashboard');
-      } else {
-        setPromptError('Senha incorreta (Modo Offline).');
+        success = true;
       }
+    }
+
+    if (success) {
+      setCurrentUsuario(userToSet);
+      setIsLoggedIn(true);
+      setActiveView('dashboard');
+    } else {
+      setPromptError('Senha incorreta. Tente novamente.');
     }
   };
 
   const handleClientLogin = async () => {
     setClientError('');
     const email = clientEmail.trim().toLowerCase();
+    let success = false;
+    let contactToSet: any = null;
+
     try {
       const res = await fetch('/api/login', {
         method: 'POST',
@@ -81,39 +91,36 @@ export const LoginScreen: React.FC = () => {
       });
       if (res.ok) {
         const data = await res.json();
-        const contact = data.contact;
-        const userObj: Usuario = {
-          id: contact.id, nome: contact.nome, email: contact.email,
-          telefone: contact.telefone, whatsapp: contact.whatsapp, cargo: contact.cargo,
-          role: 'cliente', agenciaId: 'ag1', clienteId: contact.clienteId,
-          apiToken: contact.apiToken, fotoUrl: contact.fotoUrl
-        };
-        setCurrentUsuario(userObj);
-        setIsLoggedIn(true);
-
-        // Client can only see: approvals + calendar for their company
-        const acc = contact.acessos || [];
-        if (acc.includes('Aprovações de Criativos')) setActiveView('approval');
-        else setActiveView('approval'); // default for clients
-      } else {
-        setClientError('E-mail ou senha inválidos.');
+        contactToSet = data.contact;
+        success = true;
       }
     } catch (err) {
-      // Offline fallback: find contact in client local memory
+      console.warn('Erro de rede no login do cliente, usando fallback offline');
+    }
+
+    if (!success) {
       const contact = (contatos || []).find(c => c.email.toLowerCase() === email);
       if (contact && (clientPassword === contact.password || clientPassword === 'after2026')) {
-        const userObj: Usuario = {
-          id: contact.id, nome: contact.nome, email: contact.email,
-          telefone: contact.telefone, whatsapp: contact.whatsapp, cargo: contact.cargo,
-          role: 'cliente', agenciaId: 'ag1', clienteId: contact.clienteId,
-          apiToken: contact.apiToken, fotoUrl: contact.fotoUrl
-        };
-        setCurrentUsuario(userObj);
-        setIsLoggedIn(true);
-        setActiveView('approval');
-      } else {
-        setClientError('E-mail ou senha inválidos (Modo Offline).');
+        contactToSet = contact;
+        success = true;
       }
+    }
+
+    if (success && contactToSet) {
+      const userObj: Usuario = {
+        id: contactToSet.id, nome: contactToSet.nome, email: contactToSet.email,
+        telefone: contactToSet.telefone, whatsapp: contactToSet.whatsapp, cargo: contactToSet.cargo,
+        role: 'cliente', agenciaId: 'ag1', clienteId: contactToSet.clienteId,
+        apiToken: contactToSet.apiToken, fotoUrl: contactToSet.fotoUrl
+      };
+      setCurrentUsuario(userObj);
+      setIsLoggedIn(true);
+
+      const acc = contactToSet.acessos || [];
+      if (acc.includes('Aprovações de Criativos')) setActiveView('approval');
+      else setActiveView('approval'); // default
+    } else {
+      setClientError('E-mail ou senha inválidos.');
     }
   };
 
