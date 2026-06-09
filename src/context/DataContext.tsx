@@ -61,6 +61,7 @@ interface DataContextType {
   addUsuario: (usuario: Usuario) => void;
   regenerarToken: (id: string, type: 'usuario' | 'contato') => Promise<void>;
   aiLogs: string[];
+  playAlertSound: (type: 'success' | 'warning' | 'info') => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -130,6 +131,58 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   };
 
+  const isInitialLoad = React.useRef(true);
+
+  const playAlertSound = (type: 'success' | 'warning' | 'info') => {
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
+      
+      if (type === 'success') {
+        const playTone = (freq: number, start: number, duration: number) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, start);
+          gain.gain.setValueAtTime(0.08, start);
+          gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(start);
+          osc.stop(start + duration);
+        };
+        playTone(523.25, ctx.currentTime, 0.12); // C5
+        playTone(659.25, ctx.currentTime + 0.12, 0.25); // E5
+      } else if (type === 'warning') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(329.63, ctx.currentTime); // E4
+        osc.frequency.linearRampToValueAtTime(220, ctx.currentTime + 0.35); // A3
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.35);
+      } else {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, ctx.currentTime); // A4
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.18);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.18);
+      }
+    } catch (e) {
+      console.warn('Som de alerta falhou:', e);
+    }
+  };
+
   const regenerarToken = async (id: string, type: 'usuario' | 'contato') => {
     try {
       const response = await fetch(`/api/${type}s/${id}/token`, {
@@ -170,7 +223,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (data.contatos) setContatos(data.contatos);
         if (data.demandas) setDemandas(data.demandas);
         if (data.comentarios) setComentarios(data.comentarios);
-        if (data.historicos) setHistoricos(data.historicos);
+        if (data.historicos) {
+          setHistoricos(data.historicos.sort((a: any, b: any) => new Date(b.criadoEm).getTime() - new Date(a.criadoEm).getTime()));
+        }
         if (data.aprovacoes) setAprovacoes(data.aprovacoes);
         if (data.mensagensWhatsapp) setMensagensWhatsapp(data.mensagensWhatsapp);
         if (data.automacoes && data.automacoes.length > 0) setAutomacoes(data.automacoes);
@@ -181,6 +236,42 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     loadData();
   }, []);
+
+  // Monitor initial loading for sound alerts
+  useEffect(() => {
+    if (historicos.length > 0) {
+      const timer = setTimeout(() => {
+        isInitialLoad.current = false;
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [historicos]);
+
+  // Real-time sound alert triggers when other users perform actions
+  useEffect(() => {
+    if (isInitialLoad.current || historicos.length === 0) return;
+    const latest = historicos[0];
+    
+    // Check if the history action was performed by someone else (not the current user)
+    const wasPerformedBySomeoneElse = latest.usuarioNome !== currentUsuario.nome;
+    if (!wasPerformedBySomeoneElse) return;
+    
+    const createdTime = new Date(latest.criadoEm).getTime();
+    const nowTime = Date.now();
+    const isNew = nowTime - createdTime < 4000; // less than 4 seconds ago
+    
+    if (isNew) {
+      if (latest.tipo === 'aprovacao') {
+        if (latest.acao.includes('Aprovou')) {
+          playAlertSound('success');
+        } else {
+          playAlertSound('warning');
+        }
+      } else if (latest.tipo === 'comentario') {
+        playAlertSound('info');
+      }
+    }
+  }, [historicos, currentUsuario.nome]);
 
   // Sync session states locally
   useEffect(() => {
@@ -380,6 +471,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return a;
     }));
+
+    // If client provided a text observation during approval, register it as a Comment
+    if (observacao && observacao.trim()) {
+      addComentario(demandaId, `[Comentário de ${status}]: ${observacao.trim()}`, { nome: usuarioNome, role: currentUsuario.role });
+    }
 
     // Log in History
     const hist: Historico = {
@@ -860,7 +956,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       resetDatabase,
       addUsuario,
       regenerarToken,
-      aiLogs
+      aiLogs,
+      playAlertSound
     }}>
       {children}
     </DataContext.Provider>

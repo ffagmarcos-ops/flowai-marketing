@@ -116,11 +116,69 @@ button, input, select, textarea {
 
 @media (max-width: 991px) {
   .app-container {
-    flex-direction: column;
+    flex-direction: column !important;
   }
   .main-content {
-    height: auto;
-    padding: 16px;
+    height: auto !important;
+    padding: 16px !important;
+    padding-top: 80px !important; /* give space for floating bell on mobile */
+  }
+  
+  /* Sidebar responsive styles */
+  .app-sidebar {
+    width: 100% !important;
+    height: auto !important;
+    border-right: none !important;
+    border-bottom: 1px solid #2A2A2A !important;
+    padding: 16px !important;
+    flex-direction: column !important;
+  }
+  
+  .sidebar-profile-card {
+    margin-bottom: 16px !important;
+  }
+  
+  .sidebar-nav {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    margin-bottom: 16px !important;
+  }
+  
+  .sidebar-nav button {
+    width: auto !important;
+    flex: 1 1 120px !important;
+    padding: 8px 12px !important;
+    font-size: 0.75rem !important;
+    justify-content: center !important;
+  }
+  
+  .sidebar-footer {
+    display: none !important; /* Hide footer to save space on mobile */
+  }
+
+  /* Approval Portal Grid */
+  .approval-portal-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  
+  /* Kanban board responsiveness */
+  .kanban-board {
+    padding-bottom: 8px !important;
+    gap: 12px !important;
+  }
+  
+  .kanban-lane {
+    flex: 0 0 280px !important;
+    max-height: calc(100vh - 120px) !important;
+  }
+  
+  /* Notification button position adjustment for mobile */
+  .floating-notifications {
+    position: fixed !important;
+    top: 16px !important;
+    right: 16px !important;
   }
 }
 

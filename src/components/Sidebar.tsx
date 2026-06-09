@@ -45,7 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView }) =
       });
 
   return (
-    <aside style={{
+    <aside className="app-sidebar" style={{
       width: '280px',
       backgroundColor: '#1E1E1E',
       borderRight: '1px solid #2A2A2A',
@@ -86,7 +86,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView }) =
       </div>
 
       {/* ACTIVE PROFILE DISPLAY CARD */}
-      <div style={{
+      <div className="sidebar-profile-card" style={{
         backgroundColor: '#2A2A2A',
         borderRadius: '8px',
         padding: '12px',
@@ -203,56 +203,58 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView }) =
       </div>
 
       {/* Token Integration Panel */}
-      <div style={{
-        backgroundColor: '#2A2A2A',
-        borderRadius: '8px',
-        padding: '10px 12px',
-        marginBottom: '24px',
-        border: '1px solid rgba(255, 255, 255, 0.05)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '6px',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.65rem', color: '#B5B5B5', fontWeight: 700, letterSpacing: '0.05em' }}>TOKEN DE INTEGRAÇÃO</span>
-          <button 
-            onClick={async () => {
-              if (currentUsuario.clienteId) {
-                await regenerarToken(currentUsuario.id, 'contato');
-              } else {
-                await regenerarToken(currentUsuario.id, 'usuario');
-              }
-            }}
-            title="Regerar Token de API"
-            style={{ border: 'none', backgroundColor: 'transparent', color: 'var(--gold-primary)', cursor: 'pointer', fontSize: '0.68rem', padding: 0, fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}
-          >
-            <i className="fas fa-sync-alt"></i> Atualizar
-          </button>
+      {!isClient && (
+        <div style={{
+          backgroundColor: '#2A2A2A',
+          borderRadius: '8px',
+          padding: '10px 12px',
+          marginBottom: '24px',
+          border: '1px solid rgba(255, 255, 255, 0.05)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.65rem', color: '#B5B5B5', fontWeight: 700, letterSpacing: '0.05em' }}>TOKEN DE INTEGRAÇÃO</span>
+            <button 
+              onClick={async () => {
+                if (currentUsuario.clienteId) {
+                  await regenerarToken(currentUsuario.id, 'contato');
+                } else {
+                  await regenerarToken(currentUsuario.id, 'usuario');
+                }
+              }}
+              title="Regerar Token de API"
+              style={{ border: 'none', backgroundColor: 'transparent', color: 'var(--gold-primary)', cursor: 'pointer', fontSize: '0.68rem', padding: 0, fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}
+            >
+              <i className="fas fa-sync-alt"></i> Atualizar
+            </button>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#1E1E1E', padding: '6px 8px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.03)' }}>
+            <span style={{ fontSize: '0.6rem', color: '#888', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, fontFamily: 'monospace' }}>
+              {currentUsuario.apiToken || 'Nenhum token ativo'}
+            </span>
+            <button 
+              onClick={() => {
+                if (currentUsuario.apiToken) {
+                  navigator.clipboard.writeText(currentUsuario.apiToken);
+                  alert('Token de API copiado para a área de transferência!');
+                } else {
+                  alert('Nenhum token disponível para cópia.');
+                }
+              }}
+              title="Copiar Token"
+              style={{ border: 'none', backgroundColor: 'transparent', color: '#B5B5B5', cursor: 'pointer', fontSize: '0.72rem', padding: '2px', display: 'flex', alignItems: 'center' }}
+              onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+              onMouseLeave={e => e.currentTarget.style.color = '#B5B5B5'}
+            >
+              <i className="fas fa-copy"></i>
+            </button>
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#1E1E1E', padding: '6px 8px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.03)' }}>
-          <span style={{ fontSize: '0.6rem', color: '#888', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, fontFamily: 'monospace' }}>
-            {currentUsuario.apiToken || 'Nenhum token ativo'}
-          </span>
-          <button 
-            onClick={() => {
-              if (currentUsuario.apiToken) {
-                navigator.clipboard.writeText(currentUsuario.apiToken);
-                alert('Token de API copiado para a área de transferência!');
-              } else {
-                alert('Nenhum token disponível para cópia.');
-              }
-            }}
-            title="Copiar Token"
-            style={{ border: 'none', backgroundColor: 'transparent', color: '#B5B5B5', cursor: 'pointer', fontSize: '0.72rem', padding: '2px', display: 'flex', alignItems: 'center' }}
-            onMouseEnter={e => e.currentTarget.style.color = '#fff'}
-            onMouseLeave={e => e.currentTarget.style.color = '#B5B5B5'}
-          >
-            <i className="fas fa-copy"></i>
-          </button>
-        </div>
-      </div>
+      )}
 
-      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <nav className="sidebar-nav" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
         {visibleMenuItems.map((item) => {
           const isActive = activeView === item.id;
           const isAdmin = item.id === 'admin';
@@ -304,7 +306,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView }) =
       </nav>
 
       {/* SYSTEM META FOOTER */}
-      <div style={{
+      <div className="sidebar-footer" style={{
         borderTop: '1px solid #2A2A2A',
         paddingTop: '20px',
         display: 'flex',

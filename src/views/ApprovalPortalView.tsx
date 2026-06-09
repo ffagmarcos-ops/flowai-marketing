@@ -22,7 +22,9 @@ export const ApprovalPortalView: React.FC = () => {
     contatos, 
     enviarMensagemWhatsApp, 
     selectedApprovalDemandId, 
-    setSelectedApprovalDemandId 
+    setSelectedApprovalDemandId,
+    comentarios,
+    addComentario
   } = useData();
 
   // Find demands that are in "Aprovação" or have pending approvals, filtered by client if user is client
@@ -46,6 +48,14 @@ export const ApprovalPortalView: React.FC = () => {
   
   // Comment / adjustments observation input text
   const [obs, setObs] = useState('');
+  
+  // Comments thread state and action
+  const [newPortalComment, setNewPortalComment] = useState('');
+  const handleAddPortalComment = () => {
+    if (!newPortalComment.trim() || !activeDemanda) return;
+    addComentario(activeDemanda.id, newPortalComment.trim());
+    setNewPortalComment('');
+  };
 
   // WhatsApp Share Modal States
   const [showShareModal, setShowShareModal] = useState(false);
@@ -149,7 +159,7 @@ export const ApprovalPortalView: React.FC = () => {
       </div>
 
       {/* Grid: Assets Queue vs Preview Workspace */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.5fr', gap: '32px' }}>
+      <div className="approval-portal-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 2.5fr', gap: '32px' }}>
         
         {/* Left Column: Assets awaiting approval */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -517,6 +527,97 @@ export const ApprovalPortalView: React.FC = () => {
                 </div>
               )}
 
+              {/* Seção de Discussão e Comentários do Portal */}
+              <div style={{ marginTop: '24px', borderTop: '1px solid rgba(255, 255, 255, 0.05)', paddingTop: '20px' }}>
+                <h4 style={{ fontSize: '0.9rem', color: '#fff', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <i className="fas fa-comments" style={{ color: 'var(--gold-primary)' }}></i>
+                  Histórico de Discussão / Observações
+                </h4>
+                
+                {/* List of comments */}
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  marginBottom: '16px',
+                  backgroundColor: '#141414',
+                  padding: '12px',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(255, 255, 255, 0.03)'
+                }}>
+                  {comentarios.filter(c => c.demandaId === activeDemanda.id).length === 0 ? (
+                    <div style={{ padding: '12px', textAlign: 'center', color: '#666', fontSize: '0.75rem' }}>
+                      Nenhum comentário ou ajuste registrado. Digite abaixo para iniciar a conversa.
+                    </div>
+                  ) : (
+                    comentarios.filter(c => c.demandaId === activeDemanda.id).map(c => {
+                      const isMe = c.usuarioNome === currentUsuario.nome;
+                      return (
+                        <div key={c.id} style={{
+                          backgroundColor: isMe ? 'rgba(58, 134, 255, 0.05)' : '#1E1E1E',
+                          border: isMe ? '1px solid rgba(58, 134, 255, 0.1)' : '1px solid rgba(255,255,255,0.03)',
+                          borderRadius: '6px',
+                          padding: '10px',
+                          alignSelf: isMe ? 'flex-end' : 'flex-start',
+                          maxWidth: '85%',
+                          textAlign: 'left'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', marginBottom: '4px' }}>
+                            <strong style={{ fontSize: '0.7rem', color: isMe ? 'var(--gold-primary)' : '#FFF' }}>
+                              {c.usuarioNome} ({c.usuarioRole.toUpperCase()})
+                            </strong>
+                            <span style={{ fontSize: '0.58rem', color: '#666' }}>
+                              {new Date(c.criadoEm).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <p style={{ fontSize: '0.78rem', color: '#E0E0E0', margin: 0, lineHeight: '1.4', whiteSpace: 'pre-wrap' }}>
+                            {c.conteudo}
+                          </p>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Comment input form */}
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <input
+                    type="text"
+                    value={newPortalComment}
+                    onChange={(e) => setNewPortalComment(e.target.value)}
+                    placeholder="Digite um comentário ou dúvida sobre a arte..."
+                    className="input-premium"
+                    style={{ flex: 1, padding: '10px 14px', fontSize: '0.8rem' }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleAddPortalComment();
+                      }
+                    }}
+                  />
+                  <button 
+                    onClick={handleAddPortalComment}
+                    className="btn-gold"
+                    style={{
+                      padding: '10px 20px',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      backgroundColor: 'var(--gold-primary)',
+                      border: 'none',
+                      color: '#000',
+                      cursor: 'pointer',
+                      borderRadius: '6px',
+                      transition: 'background-color 0.2s'
+                    }}
+                  >
+                    <i className="fas fa-paper-plane"></i> Enviar
+                  </button>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="card-premium" style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666' }}>

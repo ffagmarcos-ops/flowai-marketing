@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { DataProvider, useData } from './context/DataContext';
 import { Sidebar } from './components/Sidebar';
 import { LoginScreen } from './components/LoginScreen';
@@ -15,9 +15,76 @@ import { PlannerView } from './views/PlannerView';
 import assistantGuide from './data/assistant_guide.json';
 
 function AppContent() {
-  const { currentUsuario, resetDatabase, activeView, setActiveView, isLoggedIn } = useData();
+  const { 
+    currentUsuario, 
+    resetDatabase, 
+    activeView, 
+    setActiveView, 
+    isLoggedIn, 
+    historicos, 
+    demandas, 
+    setSelectedApprovalDemandId 
+  } = useData();
   const [showAssistant, setShowAssistant] = useState(false);
   const [activeAssistantTab, setActiveAssistantTab] = useState('dashboard');
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [lidasIds, setLidasIds] = useState<string[]>(() => {
+    const saved = localStorage.getItem('mf_lidas_notificacoes');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [activeToast, setActiveToast] = useState<{ id: string; mensagem: string; tipo: string } | null>(null);
+
+  // Trigger Toast Notification on new events
+  const prevHistoricosLength = useRef(historicos?.length || 0);
+  useEffect(() => {
+    if (historicos && historicos.length > prevHistoricosLength.current) {
+      const latest = historicos[0];
+      if (latest && latest.usuarioNome !== currentUsuario.nome) {
+        setActiveToast({
+          id: latest.id,
+          mensagem: `${latest.usuarioNome}: ${latest.acao}`,
+          tipo: latest.tipo
+        });
+        const timer = setTimeout(() => {
+          setActiveToast(null);
+        }, 4500);
+        return () => clearTimeout(timer);
+      }
+    }
+    prevHistoricosLength.current = historicos?.length || 0;
+  }, [historicos, currentUsuario.nome]);
+
+  const notificationsList = (historicos || []).filter(h => 
+    (h.tipo === 'comentario' || h.tipo === 'aprovacao') && 
+    h.usuarioNome !== currentUsuario.nome
+  );
+  const unreadNotifs = notificationsList.filter(n => !lidasIds.includes(n.id));
+  const unreadCount = unreadNotifs.length;
+
+  const handleNotifClick = (n: any) => {
+    if (!lidasIds.includes(n.id)) {
+      const nextLidas = [...lidasIds, n.id];
+      setLidasIds(nextLidas);
+      localStorage.setItem('mf_lidas_notificacoes', JSON.stringify(nextLidas));
+    }
+    setShowNotifications(false);
+    
+    const demand = demandas.find(d => d.id === n.demandaId);
+    if (!demand) return;
+    
+    setSelectedApprovalDemandId(demand.id);
+    if (currentUsuario.role === 'cliente' || currentUsuario.role === 'colaborador') {
+      setActiveView('approval');
+    } else {
+      setActiveView('kanban');
+    }
+  };
+
+  const markAllAsRead = () => {
+    const allIds = notificationsList.map(n => n.id);
+    setLidasIds(allIds);
+    localStorage.setItem('mf_lidas_notificacoes', JSON.stringify(allIds));
+  };
 
   // DYNAMIC DESIGN ACCENT SHIFT: If user role is Designer, switch primary CSS color variables to Blue
   useEffect(() => {
@@ -76,11 +143,167 @@ function AppContent() {
 
   return (
     <div className="app-container">
+      {/* Toast Notification Banner */}
+      {activeToast && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: 'rgba(30, 30, 30, 0.95)',
+          backdropFilter: 'blur(10px)',
+          border: `1px solid ${activeToast.tipo === 'aprovacao' ? '#25D366' : '#3a86ff'}`,
+          borderRadius: '8px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 15px rgba(58, 134, 255, 0.1)',
+          padding: '12px 20px',
+          zIndex: 10002,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          color: '#fff',
+          fontSize: '0.85rem',
+          fontWeight: 600,
+          animation: 'slideDown 0.3s ease forwards'
+        }}>
+          <i className={`fas ${activeToast.tipo === 'aprovacao' ? 'fa-check-double' : 'fa-comment'}`} style={{ color: activeToast.tipo === 'aprovacao' ? '#25D366' : '#3a86ff' }}></i>
+          <span>{activeToast.mensagem}</span>
+          <button 
+            onClick={() => setActiveToast(null)}
+            style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '0.9rem', marginLeft: '10px' }}
+          >
+            <i className="fas fa-times"></i>
+          </button>
+        </div>
+      )}
+
       {/* Dynamic Navigation Sidebar */}
       <Sidebar activeView={activeView} setActiveView={setActiveView} />
 
       {/* Main Workspace Frame */}
       <main className="main-content">
+        {/* Floating Notification Center Bell Widget */}
+        <div className="floating-notifications" style={{ position: 'absolute', top: '24px', right: '32px', zIndex: 1000 }}>
+          <button
+            onClick={() => setShowNotifications(!showNotifications)}
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              backgroundColor: '#1E1E1E',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              position: 'relative',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              outline: 'none',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--gold-primary)'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
+          >
+            <i className="fas fa-bell"></i>
+            {unreadCount > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: '-4px',
+                right: '-4px',
+                backgroundColor: '#FF5A5A',
+                color: '#fff',
+                fontSize: '0.62rem',
+                fontWeight: 800,
+                borderRadius: '50%',
+                width: '16px',
+                height: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 6px rgba(255, 90, 90, 0.6)'
+              }}>
+                {unreadCount}
+              </span>
+            )}
+          </button>
+
+          {/* Notifications Dropdown Card */}
+          {showNotifications && (
+            <div style={{
+              position: 'absolute',
+              top: '48px',
+              right: 0,
+              width: '320px',
+              backgroundColor: '#1E1E1E',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '8px',
+              boxShadow: '0 8px 30px rgba(0,0,0,0.6)',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column'
+            }}>
+              <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#fff' }}>Alertas do Portal</span>
+                {unreadCount > 0 && (
+                  <button 
+                    onClick={markAllAsRead}
+                    style={{ background: 'none', border: 'none', color: 'var(--gold-primary)', fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer', outline: 'none' }}
+                  >
+                    Marcar lidas
+                  </button>
+                )}
+              </div>
+              <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
+                {unreadNotifs.length === 0 ? (
+                  <div style={{ padding: '24px 16px', textAlign: 'center', color: '#666', fontSize: '0.75rem' }}>
+                    Nenhum alerta pendente no portal.
+                  </div>
+                ) : (
+                  unreadNotifs.map(n => {
+                    const iconClass = n.tipo === 'aprovacao' ? 'fa-check-double' : 'fa-comment';
+                    const iconColor = n.tipo === 'aprovacao' ? '#25D366' : '#3a86ff';
+                    return (
+                      <div 
+                        key={n.id}
+                        onClick={() => handleNotifClick(n)}
+                        style={{
+                          padding: '12px 16px',
+                          borderBottom: '1px solid rgba(255,255,255,0.03)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          gap: '10px',
+                          alignItems: 'flex-start',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        <i className={`fas ${iconClass}`} style={{ color: iconColor, fontSize: '0.85rem', marginTop: '3px', flexShrink: 0 }}></i>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', textAlign: 'left' }}>
+                          <span style={{ fontSize: '0.72rem', color: '#fff', lineHeight: '1.3' }}>
+                            <strong>{n.usuarioNome}</strong>: {n.acao}
+                          </span>
+                          <span style={{ fontSize: '0.62rem', color: '#666' }}>
+                            {new Date(n.criadoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* CSS Animation Keyframes for Toast slider */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          @keyframes slideDown {
+            from { transform: translate(-50%, -40px); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+          }
+        ` }} />
+
         {renderView()}
 
         {/* Global Floating Simulator Utility Button */}

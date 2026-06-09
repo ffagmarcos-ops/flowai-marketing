@@ -47,7 +47,8 @@ export const CalendarView: React.FC = () => {
     comentarios,
     addComentario,
     setActiveView,
-    setSelectedApprovalDemandId
+    setSelectedApprovalDemandId,
+    aprovacoes
   } = useData();
 
   const [viewMode, setViewMode] = useState<'monthly' | 'weekly' | 'daily'>('monthly');
@@ -615,6 +616,40 @@ export const CalendarView: React.FC = () => {
                             }}
                           >
                             <div><strong>{cli?.nomeFantasia.split(' ')[0]}:</strong> {d.titulo}</div>
+                            {/* Badges */}
+                            {(() => {
+                              const demandApprovals = aprovacoes.filter(a => a.demandaId === d.id);
+                              const lastApproval = demandApprovals.length > 0 ? demandApprovals[demandApprovals.length - 1] : null;
+                              const demandComments = comentarios.filter(c => c.demandaId === d.id);
+
+                              return (
+                                <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '2px', flexWrap: 'wrap' }}>
+                                  {demandComments.length > 0 && (
+                                    <span style={{ fontSize: '0.6rem', color: '#3a86ff', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                      <i className="fas fa-comment"></i> {demandComments.length}
+                                    </span>
+                                  )}
+                                  {lastApproval && (
+                                    <span style={{
+                                      fontSize: '0.6rem',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '2px',
+                                      fontWeight: 700,
+                                      color: 
+                                        lastApproval.status === 'Aprovado' ? '#35D07F' : 
+                                        lastApproval.status === 'Pendente' ? '#FFAA00' : '#FF5A5A',
+                                    }}>
+                                      <i className={`fas ${
+                                        lastApproval.status === 'Aprovado' ? 'fa-check-circle' :
+                                        lastApproval.status === 'Pendente' ? 'fa-hourglass-half' : 'fa-times-circle'
+                                      }`}></i>
+                                      {lastApproval.status === 'Ajuste Solicitado' ? 'Ajuste' : lastApproval.status}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })()}
                             {d.anexos && d.anexos.length > 0 && d.anexos[0] && (
                               <img 
                                 src={d.anexos[0]} 
@@ -718,6 +753,40 @@ export const CalendarView: React.FC = () => {
                             </span>
                             <span style={{ fontWeight: 600, display: 'block', margin: '4px 0', color: '#fff' }}>{d.titulo}</span>
                             <span style={{ fontSize: '0.65rem', color: '#35D07F', display: 'block', marginBottom: '4px' }}>Status: {d.status}</span>
+                            {/* Badges */}
+                            {(() => {
+                              const demandApprovals = aprovacoes.filter(a => a.demandaId === d.id);
+                              const lastApproval = demandApprovals.length > 0 ? demandApprovals[demandApprovals.length - 1] : null;
+                              const demandComments = comentarios.filter(c => c.demandaId === d.id);
+
+                              return (
+                                <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '2px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                                  {demandComments.length > 0 && (
+                                    <span style={{ fontSize: '0.6rem', color: '#3a86ff', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                      <i className="fas fa-comment"></i> {demandComments.length}
+                                    </span>
+                                  )}
+                                  {lastApproval && (
+                                    <span style={{
+                                      fontSize: '0.6rem',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '2px',
+                                      fontWeight: 700,
+                                      color: 
+                                        lastApproval.status === 'Aprovado' ? '#35D07F' : 
+                                        lastApproval.status === 'Pendente' ? '#FFAA00' : '#FF5A5A',
+                                    }}>
+                                      <i className={`fas ${
+                                        lastApproval.status === 'Aprovado' ? 'fa-check-circle' :
+                                        lastApproval.status === 'Pendente' ? 'fa-hourglass-half' : 'fa-times-circle'
+                                      }`}></i>
+                                      {lastApproval.status === 'Ajuste Solicitado' ? 'Ajuste' : lastApproval.status}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })()}
                             {d.anexos && d.anexos.length > 0 && d.anexos[0] && (
                               <img 
                                 src={d.anexos[0]} 
@@ -828,6 +897,46 @@ export const CalendarView: React.FC = () => {
                       <div style={{ fontSize: '0.75rem', color: '#35D07F', marginTop: '4px' }}>
                         Status: {d.status}
                       </div>
+                      {/* Badges */}
+                      {(() => {
+                        const demandApprovals = aprovacoes.filter(a => a.demandaId === d.id);
+                        const lastApproval = demandApprovals.length > 0 ? demandApprovals[demandApprovals.length - 1] : null;
+                        const demandComments = comentarios.filter(c => c.demandaId === d.id);
+
+                        return (
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '6px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                            {demandComments.length > 0 && (
+                              <span style={{ fontSize: '0.65rem', color: '#3a86ff', display: 'flex', alignItems: 'center', gap: '2px', backgroundColor: 'rgba(58, 134, 255, 0.08)', padding: '2px 6px', borderRadius: '4px' }}>
+                                <i className="fas fa-comment"></i> {demandComments.length}
+                              </span>
+                            )}
+                            {lastApproval && (
+                              <span style={{
+                                fontSize: '0.65rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '2px',
+                                fontWeight: 700,
+                                color: 
+                                  lastApproval.status === 'Aprovado' ? '#35D07F' : 
+                                  lastApproval.status === 'Pendente' ? '#FFAA00' : '#FF5A5A',
+                                backgroundColor: 
+                                  lastApproval.status === 'Aprovado' ? 'rgba(53, 208, 127, 0.08)' : 
+                                  lastApproval.status === 'Pendente' ? 'rgba(255, 170, 0, 0.08)' : 'rgba(255, 90, 90, 0.08)',
+                                padding: '2px 6px',
+                                borderRadius: '4px'
+                              }}>
+                                <i className={`fas ${
+                                  lastApproval.status === 'Aprovado' ? 'fa-check-circle' :
+                                  lastApproval.status === 'Pendente' ? 'fa-hourglass-half' : 'fa-times-circle'
+                                }`}></i>
+                                {lastApproval.status === 'Ajuste Solicitado' ? 'Ajuste' : lastApproval.status}
+                                {lastApproval.usuarioNome && ` por ${lastApproval.usuarioNome.split(' ')[0]}`}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 );

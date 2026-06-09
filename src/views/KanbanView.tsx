@@ -14,7 +14,8 @@ export const KanbanView: React.FC = () => {
     enviarMensagemWhatsApp, 
     currentUsuario,
     comentarios,
-    addComentario
+    addComentario,
+    aprovacoes
   } = useData();
 
   // Filter States
@@ -442,6 +443,50 @@ export const KanbanView: React.FC = () => {
                             .join(', ') || 'Sem aprovador específico'}
                         </strong>
                       </div>
+
+                      {/* Approval Status & Comments Badge */}
+                      {(() => {
+                        const demandApprovals = aprovacoes.filter(a => a.demandaId === d.id);
+                        const lastApproval = demandApprovals.length > 0 ? demandApprovals[demandApprovals.length - 1] : null;
+                        const demandComments = comentarios.filter(c => c.demandaId === d.id);
+
+                        return (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '6px', alignItems: 'center' }}>
+                            {/* Comment count */}
+                            {demandComments.length > 0 && (
+                              <span style={{ fontSize: '0.7rem', color: '#3a86ff', backgroundColor: 'rgba(58, 134, 255, 0.08)', padding: '2px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <i className="fas fa-comment"></i> {demandComments.length}
+                              </span>
+                            )}
+                            
+                            {/* Last Approval badge */}
+                            {lastApproval && (
+                              <span style={{
+                                fontSize: '0.7rem',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                fontWeight: 700,
+                                color: 
+                                  lastApproval.status === 'Aprovado' ? '#35D07F' : 
+                                  lastApproval.status === 'Pendente' ? '#FFAA00' : '#FF5A5A',
+                                backgroundColor: 
+                                  lastApproval.status === 'Aprovado' ? 'rgba(53, 208, 127, 0.08)' : 
+                                  lastApproval.status === 'Pendente' ? 'rgba(255, 170, 0, 0.08)' : 'rgba(255, 90, 90, 0.08)',
+                              }}>
+                                <i className={`fas ${
+                                  lastApproval.status === 'Aprovado' ? 'fa-check-circle' :
+                                  lastApproval.status === 'Pendente' ? 'fa-hourglass-half' : 'fa-times-circle'
+                                }`}></i>
+                                {lastApproval.status === 'Ajuste Solicitado' ? 'Ajuste' : lastApproval.status}
+                                {lastApproval.usuarioNome && ` por ${lastApproval.usuarioNome.split(' ')[0]}`}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
 
                       {/* Display warning if SLA exceeded */}
                       {d.slaEstourado && (
