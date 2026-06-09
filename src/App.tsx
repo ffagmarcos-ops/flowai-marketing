@@ -201,7 +201,28 @@ function AppContent() {
               </button>
             </div>
 
-            {/* Description banner + filtered steps */}
+            {/* 
+              💡 EXPLICAÇÃO DA ARQUITETURA DO GUIA DO SISTEMA BASEADO EM METADADOS (JSON):
+              
+              Este painel de ajuda / onboarding foi projetado para ser 100% dinâmico, aplicando
+              o conceito de "Configuração Orientada a Dados" (Data-Driven Configuration).
+              
+              COMO FUNCIONA E COMO REPROVEITAR EM PROJETOS FUTUROS:
+              1. Estrutura Declarativa (assistant_guide.json): Todas as descrições de fluxo, 
+                 títulos, ícones e papéis permitidos (roles) estão isolados em um arquivo JSON de metadados.
+                 Dessa forma, atualizar ou adicionar guias de ajuda não exige alterações na lógica ou
+                 novas compilações de código React.
+                 
+              2. Filtro Baseado em Roles (Role-Based Filtering): 
+                 `assistantGuide.passos.filter(...)` filtra os guias em tempo de execução de acordo
+                 com o perfil do usuário ativo. Assim, garantimos segurança e relevância (clientes veem
+                 apenas guias específicos do portal, designers veem guias de produção, etc.).
+                 
+              3. Navegação Reativa e Integrada:
+                 O identificador do guia (`modulo`) mapeia 1:1 os identificadores das abas da plataforma.
+                 Ao clicar no botão "Acessar Módulo", alteramos o estado global `activeView` para redirecionar 
+                 o usuário e fechar o guia (`setShowAssistant(false)`), oferecendo um onboarding ativo e prático.
+            */}
             {(() => {
               const filteredPassos = assistantGuide.passos.filter(p => p.roles?.includes(currentUsuario.role));
               const currentStep = filteredPassos.find(s => s.modulo === activeAssistantTab);
