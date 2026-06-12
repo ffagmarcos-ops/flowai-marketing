@@ -232,7 +232,8 @@ async function init() {
         status VARCHAR(50) DEFAULT 'aguardando',
         progress INT DEFAULT 0,
         color VARCHAR(50) DEFAULT '#2563EB',
-        criadoEm VARCHAR(100) NOT NULL
+        criadoEm VARCHAR(100) NOT NULL,
+        visualizadoresIds LONGTEXT
       );
     `);
 
@@ -276,6 +277,14 @@ async function init() {
     try {
       await db.query('ALTER TABLE contatos ADD COLUMN password VARCHAR(255)');
       console.log('[INITDB] Migração: Adicionada coluna password em contatos.');
+    } catch (e) {
+      // ignore
+    }
+
+    // Ensure visualizadoresIds exists in cronograma_projetos
+    try {
+      await db.query('ALTER TABLE cronograma_projetos ADD COLUMN visualizadoresIds LONGTEXT');
+      console.log('[INITDB] Migração: Adicionada coluna visualizadoresIds em cronograma_projetos.');
     } catch (e) {
       // ignore
     }

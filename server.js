@@ -272,11 +272,15 @@ app.get('/api/all-data', async (req, res) => {
     const [mensagensWhatsapp] = await pool.query('SELECT * FROM mensagens_whatsapp');
     const [automacoes] = await pool.query('SELECT * FROM automacoes');
     const [itensPlanejamentoRaw] = await pool.query('SELECT * FROM itens_planejamento');
-    const [projetos] = await pool.query('SELECT * FROM cronograma_projetos');
+    const [projetosRaw] = await pool.query('SELECT * FROM cronograma_projetos');
     const [etapas] = await pool.query('SELECT * FROM cronograma_etapas');
 
     // Parse JSON columns
     const contatos = contatosRaw.map(c => ({ ...c, acessos: safeParse(c.acessos) }));
+    const projetos = projetosRaw.map(p => ({
+      ...p,
+      visualizadoresIds: safeParse(p.visualizadoresIds)
+    }));
     const demandas = demandasRaw.map(d => ({
       ...d,
       anexos: safeParse(d.anexos),
@@ -680,11 +684,12 @@ app.post('/api/cronograma/projetos', async (req, res) => {
   try {
     const p = req.body;
     await pool.query(`
-      INSERT INTO cronograma_projetos (id, clienteId, name, slug, client_name, banner_url, logo_url, start_date, expected_delivery, status, progress, color, criadoEm)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO cronograma_projetos (id, clienteId, name, slug, client_name, banner_url, logo_url, start_date, expected_delivery, status, progress, color, criadoEm, visualizadoresIds)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       p.id, p.clienteId, p.name, p.slug, p.client_name, p.banner_url || null, p.logo_url || null,
-      p.start_date, p.expected_delivery, p.status || 'aguardando', p.progress || 0, p.color || '#2563EB', p.criadoEm || new Date().toISOString()
+      p.start_date, p.expected_delivery, p.status || 'aguardando', p.progress || 0, p.color || '#2563EB', p.criadoEm || new Date().toISOString(),
+      safeStringify(p.visualizadoresIds)
     ]);
     res.status(201).json({ status: 'created', id: p.id });
   } catch (err) {
@@ -699,11 +704,12 @@ app.put('/api/cronograma/projetos/:id', async (req, res) => {
     const p = req.body;
     await pool.query(`
       UPDATE cronograma_projetos 
-      SET name = ?, client_name = ?, banner_url = ?, logo_url = ?, start_date = ?, expected_delivery = ?, status = ?, progress = ?, color = ?
+      SET name = ?, client_name = ?, banner_url = ?, logo_url = ?, start_date = ?, expected_delivery = ?, status = ?, progress = ?, color = ?, visualizadoresIds = ?
       WHERE id = ?
     `, [
       p.name, p.client_name, p.banner_url || null, p.logo_url || null,
       p.start_date, p.expected_delivery, p.status, p.progress, p.color,
+      safeStringify(p.visualizadoresIds),
       id
     ]);
     res.json({ status: 'updated' });

@@ -174,6 +174,7 @@ export interface ProjetoCronograma {
   progress: number; // 0-100
   color: string; // hex color
   criadoEm?: string;
+  visualizadoresIds?: string[]; // IDs of extra users/contacts allowed to view the project timeline
 }
 
 export interface EtapaCronograma {

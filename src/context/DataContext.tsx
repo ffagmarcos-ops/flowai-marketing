@@ -1029,7 +1029,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       status: 'aguardando',
       progress: 0,
       color: '#2563EB',
-      criadoEm: new Date().toISOString()
+      criadoEm: new Date().toISOString(),
+      visualizadoresIds: []
     };
 
     setProjetosCronograma(prev => [...prev, newProj]);

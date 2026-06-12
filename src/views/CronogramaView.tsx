@@ -45,8 +45,10 @@ export const CronogramaView: React.FC = () => {
     projetosCronograma,
     etapasCronograma,
     clientes,
+    contatos,
     currentUsuario,
     addProjetoCronograma,
+    updateProjetoCronograma,
     deleteProjetoCronograma,
     updateEtapaCronograma,
     addEtapaCustomizada,
@@ -56,13 +58,30 @@ export const CronogramaView: React.FC = () => {
 
   const isClient = currentUsuario.role === 'cliente' || currentUsuario.role === 'colaborador';
 
-  // Filter projects by client if logged in as client
+  // Filter projects by client if logged in as client (or if they are explicitly assigned as extra viewers)
   const filteredProjects: ProjetoCronograma[] = isClient
-    ? projetosCronograma.filter(p => p.clienteId === currentUsuario.clienteId)
+    ? projetosCronograma.filter(p => p.clienteId === currentUsuario.clienteId || p.visualizadoresIds?.includes(currentUsuario.id))
     : projetosCronograma;
 
   // Selected Project state
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+
+  // State for sharing project with other viewers
+  const [showViewerModal, setShowViewerModal] = useState(false);
+
+  const handleToggleViewer = async (contactId: string) => {
+    const activeProj = filteredProjects.find(p => p.id === selectedProjectId);
+    if (!activeProj) return;
+    const currentViewers = activeProj.visualizadoresIds || [];
+    const updatedViewers = currentViewers.includes(contactId)
+      ? currentViewers.filter(id => id !== contactId)
+      : [...currentViewers, contactId];
+    
+    await updateProjetoCronograma({
+      ...activeProj,
+      visualizadoresIds: updatedViewers
+    });
+  };
 
   useEffect(() => {
     if (filteredProjects.length > 0) {
@@ -388,8 +407,19 @@ export const CronogramaView: React.FC = () => {
                           PROJETO OPERACIONAL
                         </span>
                         <h2 style={{ fontSize: '1.8rem', margin: 0, color: '#FFF' }}>{activeProject.name}</h2>
-                        <p style={{ margin: '4px 0 0 0', color: '#B5B5B5', fontSize: '0.8rem' }}>
-                          Cliente: <strong>{activeProject.client_name}</strong>
+                        <p style={{ margin: '4px 0 0 0', color: '#B5B5B5', fontSize: '0.8rem', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                          <span>Cliente: <strong>{activeProject.client_name}</strong></span>
+                          {activeProject.visualizadoresIds && activeProject.visualizadoresIds.length > 0 && (
+                            <span style={{ color: '#888', display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>
+                              <i className="fas fa-eye" style={{ color: 'var(--gold-primary)' }}></i>
+                              Compartilhado com: {
+                                activeProject.visualizadoresIds.map(vid => {
+                                  const c = contatos.find(cnt => cnt.id === vid);
+                                  return c ? `@${c.nome}` : vid;
+                                }).join(', ')
+                              }
+                            </span>
+                          )}
                         </p>
                       </div>
 
@@ -418,24 +448,45 @@ export const CronogramaView: React.FC = () => {
                       )}
 
                       {!isClient && (
-                        <button 
-                          onClick={() => handleDeleteProject(activeProject.id)}
-                          style={{
-                            backgroundColor: 'rgba(255, 90, 90, 0.1)',
-                            border: '1px solid rgba(255, 90, 90, 0.3)',
-                            color: '#FF5A5A',
-                            padding: '8px 12px',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontSize: '0.75rem',
-                            fontWeight: 700,
-                            transition: 'all 0.2s'
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255, 90, 90, 0.2)'}
-                          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(255, 90, 90, 0.1)'}
-                        >
-                          <i className="fas fa-trash-can" style={{ marginRight: '6px' }} /> Deletar Projeto
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button 
+                            onClick={() => setShowViewerModal(true)}
+                            style={{
+                              backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                              border: '1px solid rgba(212, 175, 55, 0.3)',
+                              color: 'var(--gold-primary)',
+                              padding: '8px 12px',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(212, 175, 55, 0.2)'}
+                            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(212, 175, 55, 0.1)'}
+                          >
+                            <i className="fas fa-share-nodes" style={{ marginRight: '6px' }} /> Compartilhar
+                          </button>
+
+                          <button 
+                            onClick={() => handleDeleteProject(activeProject.id)}
+                            style={{
+                              backgroundColor: 'rgba(255, 90, 90, 0.1)',
+                              border: '1px solid rgba(255, 90, 90, 0.3)',
+                              color: '#FF5A5A',
+                              padding: '8px 12px',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255, 90, 90, 0.2)'}
+                            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(255, 90, 90, 0.1)'}
+                          >
+                            <i className="fas fa-trash-can" style={{ marginRight: '6px' }} /> Deletar Projeto
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -1220,6 +1271,125 @@ export const CronogramaView: React.FC = () => {
               </button>
 
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* 5. MODAL: GERENCIAR VISUALIZADORES (COMPARTILHAMENTO) */}
+      {/* ============================================================== */}
+      {showViewerModal && activeProject && (
+        <div 
+          onClick={() => setShowViewerModal(false)}
+          style={{
+            position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', 
+            backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10003
+          }}
+        >
+          <div 
+            onClick={e => e.stopPropagation()}
+            style={{
+              backgroundColor: '#1E1E1E', 
+              borderRadius: '16px', 
+              padding: '32px', 
+              width: '90%', 
+              maxWidth: '520px',
+              border: '1px solid var(--glass-border)',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+              position: 'relative'
+            }}
+          >
+            <button 
+              onClick={() => setShowViewerModal(false)}
+              style={{ position: 'absolute', top: 16, right: 16, background: '#2A2A2A', border: 'none', width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#FFF' }}
+            >
+              <i className="fas fa-times" />
+            </button>
+
+            <h2 style={{ fontSize: '1.25rem', color: 'var(--gold-primary)', fontWeight: 800, margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <i className="fas fa-users-viewfinder"></i> Compartilhar Cronograma
+            </h2>
+            <p style={{ color: '#B5B5B5', fontSize: '0.8rem', margin: '0 0 24px 0' }}>
+              Atribua outras pessoas de fora da empresa {activeProject.client_name} para visualizar este cronograma de projeto.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '320px', overflowY: 'auto', paddingRight: '4px' }}>
+              {contatos.filter(c => c.clienteId !== activeProject.clienteId).length === 0 ? (
+                <p style={{ fontSize: '0.8rem', color: '#666', textAlign: 'center', margin: '20px 0' }}>
+                  Nenhum outro contato cadastrado no CRM para compartilhar.
+                </p>
+              ) : (
+                contatos.filter(c => c.clienteId !== activeProject.clienteId).map(contact => {
+                  const company = clientes.find(cli => cli.id === contact.clienteId);
+                  const isChecked = (activeProject.visualizadoresIds || []).includes(contact.id);
+                  return (
+                    <label 
+                      key={contact.id} 
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '12px 14px',
+                        backgroundColor: '#252525',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        border: '1px solid',
+                        borderColor: isChecked ? 'rgba(212,175,55,0.2)' : 'transparent',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '50%',
+                          backgroundColor: isChecked ? 'var(--gold-primary)' : '#333',
+                          color: isChecked ? '#000' : '#FFF',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 700,
+                          fontSize: '0.75rem'
+                        }}>
+                          {contact.nome.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <span style={{ fontSize: '0.82rem', fontWeight: 700, color: isChecked ? '#FFF' : '#B5B5B5', display: 'block' }}>
+                            {contact.nome}
+                          </span>
+                          <span style={{ fontSize: '0.68rem', color: '#666' }}>
+                            Empresa: {company ? company.nomeFantasia : 'N/A'} ({contact.cargo})
+                          </span>
+                        </div>
+                      </div>
+                      <input 
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => handleToggleViewer(contact.id)}
+                        style={{
+                          accentColor: 'var(--gold-primary)',
+                          width: '16px',
+                          height: '16px',
+                          cursor: 'pointer'
+                        }}
+                      />
+                    </label>
+                  );
+                })
+              )}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>
+              <button 
+                type="button" 
+                onClick={() => setShowViewerModal(false)}
+                className="btn-gold"
+                style={{ padding: '10px 20px', borderRadius: '8px', fontSize: '0.85rem' }}
+              >
+                Concluir
+              </button>
+            </div>
           </div>
         </div>
       )}
