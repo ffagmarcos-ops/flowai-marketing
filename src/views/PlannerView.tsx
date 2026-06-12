@@ -112,21 +112,20 @@ export const PlannerView: React.FC = () => {
   // Submit Handler
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!titulo.trim() || !dataPostagem || !responsavelId) {
-      alert('Preencha os campos obrigatórios (Título, Data e Responsável)');
-      return;
-    }
+    const finalTitulo = titulo.trim() || 'Criativo Sem Título';
+    const finalData = dataPostagem || (selectedMes + '-15');
+    const finalResponsavel = responsavelId || (agencyUsers[0]?.id || 'master1');
 
     const payload = {
       clienteId: selectedClientId,
       mes: selectedMes,
-      titulo: titulo.trim(),
+      titulo: finalTitulo,
       descricao: descricao.trim(),
       canal,
-      dataPostagem,
+      dataPostagem: finalData,
       categoria,
       prioridade,
-      responsavelId,
+      responsavelId: finalResponsavel,
       aprovadoresIds
     };
 
@@ -455,7 +454,7 @@ export const PlannerView: React.FC = () => {
               
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                  Título do Post / Tema *
+                  Título do Post / Tema
                 </label>
                 <input 
                   type="text" 
@@ -463,7 +462,6 @@ export const PlannerView: React.FC = () => {
                   onChange={(e) => setTitulo(e.target.value)} 
                   placeholder="Ex: Lançamento do Produto X" 
                   style={inputStyle}
-                  required
                 />
               </div>
 
@@ -484,14 +482,13 @@ export const PlannerView: React.FC = () => {
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    Data Programada *
+                    Data Programada
                   </label>
                   <input 
                     type="date" 
                     value={dataPostagem} 
                     onChange={(e) => setDataPostagem(e.target.value)} 
                     style={inputStyle}
-                    required
                   />
                 </div>
               </div>
@@ -529,9 +526,9 @@ export const PlannerView: React.FC = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    Responsável Técnico (Agência) *
+                    Responsável Técnico (Agência)
                   </label>
-                  <select value={responsavelId} onChange={(e) => setResponsavelId(e.target.value)} style={inputStyle} required>
+                  <select value={responsavelId} onChange={(e) => setResponsavelId(e.target.value)} style={inputStyle}>
                     <option value="">Selecione o Responsável</option>
                     {agencyUsers.map(u => (
                       <option key={u.id} value={u.id}>{u.nome} ({u.cargo || u.role})</option>

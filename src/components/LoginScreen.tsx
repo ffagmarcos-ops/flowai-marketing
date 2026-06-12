@@ -83,19 +83,37 @@ export const LoginScreen: React.FC = () => {
     let success = false;
     let contactToSet: any = null;
 
-    try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password: clientPassword })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        contactToSet = data.contact;
-        success = true;
+    // Direct fallback for admin / after2026 client login
+    if (email === 'admin' && clientPassword === 'after2026') {
+      contactToSet = {
+        id: 'cont_aurea',
+        nome: 'Ana da Aurea (Admin)',
+        email: 'admin',
+        telefone: '11999999999',
+        whatsapp: '11999999999',
+        cargo: 'Gestora de Projetos',
+        clienteId: 'cli_aurea',
+        apiToken: 'flowai_tk_aurea_client_default_integration_key',
+        acessos: ["Aprovações de Criativos", "Cronograma de Projetos", "Planejamento de Campanhas", "Calendário de Marketing"]
+      };
+      success = true;
+    }
+
+    if (!success) {
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password: clientPassword })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          contactToSet = data.contact;
+          success = true;
+        }
+      } catch (err) {
+        console.warn('Erro de rede no login do cliente, usando fallback offline');
       }
-    } catch (err) {
-      console.warn('Erro de rede no login do cliente, usando fallback offline');
     }
 
     if (!success) {
@@ -267,10 +285,10 @@ export const LoginScreen: React.FC = () => {
             </div>
 
             <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
-              <label style={{ fontSize:'0.72rem', color:'#B5B5B5', fontWeight:600 }}>E-mail de acesso:</label>
+              <label style={{ fontSize:'0.72rem', color:'#B5B5B5', fontWeight:600 }}>E-mail ou Usuário de acesso:</label>
               <input
-                type="email" value={clientEmail} onChange={e => { setClientEmail(e.target.value); setClientError(''); }}
-                className="input-premium" placeholder="seu@email.com"
+                type="text" value={clientEmail} onChange={e => { setClientEmail(e.target.value); setClientError(''); }}
+                className="input-premium" placeholder="admin ou seu@email.com"
                 style={{ width:'100%', padding:'10px 14px', borderRadius:'8px' }}
               />
             </div>

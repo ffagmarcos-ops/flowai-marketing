@@ -93,21 +93,22 @@ export const CRMView: React.FC = () => {
 
   const handleCreateCliente = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!razaoSocial || !nomeFantasia || !cnpj || !email || !whatsapp) {
-      alert('Preencha todos os campos obrigatórios.');
-      return;
-    }
+    const finalNome = nomeFantasia.trim() || razaoSocial.trim() || 'Empresa Sem Nome';
+    const finalRazao = razaoSocial.trim() || finalNome;
+    const finalCnpj = cnpj.trim() || '00.000.000/0000-00';
+    const finalEmail = email.trim() || 'contato@empresa.com';
+    const finalWhatsapp = whatsapp.trim() || '11999999999';
 
     addCliente({
       agenciaId: currentUsuario.agenciaId,
-      razaoSocial,
-      nomeFantasia,
-      cnpj,
+      razaoSocial: finalRazao,
+      nomeFantasia: finalNome,
+      cnpj: finalCnpj,
       segmento,
       endereco,
       telefones,
-      whatsapp,
-      email,
+      whatsapp: finalWhatsapp,
+      email: finalEmail,
       calendarioIcs,
       logoUrl
     });
@@ -127,27 +128,24 @@ export const CRMView: React.FC = () => {
 
   const handleCreateContact = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!contactNome || !contactCargo || !contactWhatsapp || !contactEmail) {
-      alert('Preencha os campos obrigatórios do contato.');
-      return;
-    }
-    if (!contactLogin || !contactSenha) {
-      alert('Defina um login (e-mail) e senha para o acesso do cliente ao portal.');
-      return;
-    }
+    const finalNome = contactNome.trim() || 'Contato Sem Nome';
+    const finalCargo = contactCargo.trim() || 'Cargo Não Especificado';
+    const finalWhatsapp = contactWhatsapp.trim() || '11999999999';
+    const finalEmail = contactEmail.trim() || 'contato@empresa.com';
+    const finalSenha = contactSenha.trim() || 'after2026';
 
     const newContact: Contato = {
       id: 'co_' + Date.now(),
       clienteId: selectedClientId,
-      nome: contactNome,
-      cargo: contactCargo,
+      nome: finalNome,
+      cargo: finalCargo,
       telefone: contactTelefone,
-      whatsapp: contactWhatsapp,
-      email: contactEmail,
+      whatsapp: finalWhatsapp,
+      email: finalEmail,
       prioridadeEscalonamento: +contactPriority,
       acessos: selectedAccesses,
       fotoUrl: contactFotoUrl,
-      password: contactSenha
+      password: finalSenha
     };
 
     addContato(newContact);
@@ -167,21 +165,23 @@ export const CRMView: React.FC = () => {
   const handleUpdateCliente = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingClient) return;
-    if (!editRazaoSocial || !editNomeFantasia || !editCnpj || !editEmail || !editWhatsapp) {
-      alert('Preencha todos os campos obrigatórios.');
-      return;
-    }
+
+    const finalNome = editNomeFantasia.trim() || editRazaoSocial.trim() || 'Empresa Sem Nome';
+    const finalRazao = editRazaoSocial.trim() || finalNome;
+    const finalCnpj = editCnpj.trim() || '00.000.000/0000-00';
+    const finalEmail = editEmail.trim() || 'contato@empresa.com';
+    const finalWhatsapp = editWhatsapp.trim() || '11999999999';
 
     updateCliente({
       ...editingClient,
-      razaoSocial: editRazaoSocial,
-      nomeFantasia: editNomeFantasia,
-      cnpj: editCnpj,
+      razaoSocial: finalRazao,
+      nomeFantasia: finalNome,
+      cnpj: finalCnpj,
       segmento: editSegmento,
       endereco: editEndereco,
       telefones: editTelefones,
-      whatsapp: editWhatsapp,
-      email: editEmail,
+      whatsapp: finalWhatsapp,
+      email: finalEmail,
       calendarioIcs: editCalendarioIcs,
       logoUrl: editLogoUrl
     });
@@ -193,18 +193,19 @@ export const CRMView: React.FC = () => {
   const handleUpdateContact = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingContact) return;
-    if (!editContactNome || !editContactCargo || !editContactWhatsapp || !editContactEmail) {
-      alert('Preencha os campos obrigatórios do contato.');
-      return;
-    }
+
+    const finalNome = editContactNome.trim() || 'Contato Sem Nome';
+    const finalCargo = editContactCargo.trim() || 'Cargo Não Especificado';
+    const finalWhatsapp = editContactWhatsapp.trim() || '11999999999';
+    const finalEmail = editContactEmail.trim() || 'contato@empresa.com';
 
     updateContato({
       ...editingContact,
-      nome: editContactNome,
-      cargo: editContactCargo,
+      nome: finalNome,
+      cargo: finalCargo,
       telefone: editContactTelefone,
-      whatsapp: editContactWhatsapp,
-      email: editContactEmail,
+      whatsapp: finalWhatsapp,
+      email: finalEmail,
       prioridadeEscalonamento: +editContactPriority,
       acessos: editSelectedAccesses,
       fotoUrl: editContactFotoUrl,
@@ -616,24 +617,24 @@ backgroundColor: '#2A2A2A',
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    Razão Social *
+                    Razão Social
                   </label>
-                  <input type="text" value={razaoSocial} onChange={(e) => setRazaoSocial(e.target.value)} className="input-premium" required placeholder="Ex: Supermercado Preço Bom LTDA" />
+                  <input type="text" value={razaoSocial} onChange={(e) => setRazaoSocial(e.target.value)} className="input-premium" placeholder="Ex: Supermercado Preço Bom LTDA" />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    Nome Fantasia *
+                    Nome Fantasia
                   </label>
-                  <input type="text" value={nomeFantasia} onChange={(e) => setNomeFantasia(e.target.value)} className="input-premium" required placeholder="Ex: Bom Preço" />
+                  <input type="text" value={nomeFantasia} onChange={(e) => setNomeFantasia(e.target.value)} className="input-premium" placeholder="Ex: Bom Preço" />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    CNPJ *
+                    CNPJ
                   </label>
-                  <input type="text" value={cnpj} onChange={(e) => setCnpj(e.target.value)} className="input-premium" required placeholder="Ex: 00.000.000/0001-00" />
+                  <input type="text" value={cnpj} onChange={(e) => setCnpj(e.target.value)} className="input-premium" placeholder="Ex: 00.000.000/0001-00" />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
@@ -672,15 +673,15 @@ backgroundColor: '#2A2A2A',
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    WhatsApp Principal *
+                    WhatsApp Principal
                   </label>
-                  <input type="text" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} className="input-premium" required placeholder="Ex: (11) 99999-9999" />
+                  <input type="text" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} className="input-premium" placeholder="Ex: (11) 99999-9999" />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    E-mail Principal *
+                    E-mail Principal
                   </label>
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input-premium" required placeholder="Ex: contato@empresa.com" />
+                  <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} className="input-premium" placeholder="Ex: contato@empresa.com" />
                 </div>
               </div>
 
@@ -877,30 +878,30 @@ backgroundColor: '#2A2A2A',
               
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                  Nome Completo *
+                  Nome Completo
                 </label>
-                <input type="text" value={contactNome} onChange={(e) => setContactNome(e.target.value)} className="input-premium" required placeholder="Ex: Roberto Carlos" />
+                <input type="text" value={contactNome} onChange={(e) => setContactNome(e.target.value)} className="input-premium" placeholder="Ex: Roberto Carlos" />
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                  Cargo *
+                  Cargo
                 </label>
-                <input type="text" value={contactCargo} onChange={(e) => setContactCargo(e.target.value)} className="input-premium" required placeholder="Ex: Gerente Geral / Diretor Proprietário" />
+                <input type="text" value={contactCargo} onChange={(e) => setContactCargo(e.target.value)} className="input-premium" placeholder="Ex: Gerente Geral / Diretor Proprietário" />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    WhatsApp *
+                    WhatsApp
                   </label>
-                  <input type="text" value={contactWhatsapp} onChange={(e) => setContactWhatsapp(e.target.value)} className="input-premium" required placeholder="Ex: (11) 98888-8888" />
+                  <input type="text" value={contactWhatsapp} onChange={(e) => setContactWhatsapp(e.target.value)} className="input-premium" placeholder="Ex: (11) 98888-8888" />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    E-mail *
+                    E-mail
                   </label>
-                  <input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className="input-premium" required placeholder="Ex: roberto@empresa.com" />
+                  <input type="text" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className="input-premium" placeholder="Ex: roberto@empresa.com" />
                 </div>
               </div>
 
@@ -1073,12 +1074,12 @@ backgroundColor: '#2A2A2A',
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, marginBottom: '4px', color: '#B5B5B5' }}>Login (e-mail) *</label>
-                    <input type="email" value={contactLogin} onChange={e => setContactLogin(e.target.value)} className="input-premium" required placeholder="joao@empresa.com" />
+                    <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, marginBottom: '4px', color: '#B5B5B5' }}>Login (e-mail ou usuário)</label>
+                    <input type="text" value={contactLogin} onChange={e => setContactLogin(e.target.value)} className="input-premium" placeholder="Ex: admin ou joao@empresa.com" />
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, marginBottom: '4px', color: '#B5B5B5' }}>Senha *</label>
-                    <input type="password" value={contactSenha} onChange={e => setContactSenha(e.target.value)} className="input-premium" required placeholder="••••••••" />
+                    <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, marginBottom: '4px', color: '#B5B5B5' }}>Senha</label>
+                    <input type="password" value={contactSenha} onChange={e => setContactSenha(e.target.value)} className="input-premium" placeholder="••••••••" />
                   </div>
                 </div>
                 <p style={{ fontSize: '0.65rem', color: '#888', margin: 0 }}>
@@ -1140,24 +1141,24 @@ backgroundColor: '#2A2A2A',
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    Razão Social *
+                    Razão Social
                   </label>
-                  <input type="text" value={editRazaoSocial} onChange={(e) => setEditRazaoSocial(e.target.value)} className="input-premium" required />
+                  <input type="text" value={editRazaoSocial} onChange={(e) => setEditRazaoSocial(e.target.value)} className="input-premium" />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    Nome Fantasia *
+                    Nome Fantasia
                   </label>
-                  <input type="text" value={editNomeFantasia} onChange={(e) => setEditNomeFantasia(e.target.value)} className="input-premium" required />
+                  <input type="text" value={editNomeFantasia} onChange={(e) => setEditNomeFantasia(e.target.value)} className="input-premium" />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    CNPJ *
+                    CNPJ
                   </label>
-                  <input type="text" value={editCnpj} onChange={(e) => setEditCnpj(e.target.value)} className="input-premium" required />
+                  <input type="text" value={editCnpj} onChange={(e) => setEditCnpj(e.target.value)} className="input-premium" />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
@@ -1196,15 +1197,15 @@ backgroundColor: '#2A2A2A',
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    WhatsApp Principal *
+                    WhatsApp Principal
                   </label>
-                  <input type="text" value={editWhatsapp} onChange={(e) => setEditWhatsapp(e.target.value)} className="input-premium" required />
+                  <input type="text" value={editWhatsapp} onChange={(e) => setEditWhatsapp(e.target.value)} className="input-premium" />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    E-mail Principal *
+                    E-mail Principal
                   </label>
-                  <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} className="input-premium" required />
+                  <input type="text" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} className="input-premium" />
                 </div>
               </div>
 
@@ -1401,30 +1402,30 @@ backgroundColor: '#2A2A2A',
               
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                  Nome Completo *
+                  Nome Completo
                 </label>
-                <input type="text" value={editContactNome} onChange={(e) => setEditContactNome(e.target.value)} className="input-premium" required />
+                <input type="text" value={editContactNome} onChange={(e) => setEditContactNome(e.target.value)} className="input-premium" />
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                  Cargo *
+                  Cargo
                 </label>
-                <input type="text" value={editContactCargo} onChange={(e) => setEditContactCargo(e.target.value)} className="input-premium" required />
+                <input type="text" value={editContactCargo} onChange={(e) => setEditContactCargo(e.target.value)} className="input-premium" />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    WhatsApp *
+                    WhatsApp
                   </label>
-                  <input type="text" value={editContactWhatsapp} onChange={(e) => setEditContactWhatsapp(e.target.value)} className="input-premium" required />
+                  <input type="text" value={editContactWhatsapp} onChange={(e) => setEditContactWhatsapp(e.target.value)} className="input-premium" />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    E-mail *
+                    E-mail
                   </label>
-                  <input type="email" value={editContactEmail} onChange={(e) => setEditContactEmail(e.target.value)} className="input-premium" required />
+                  <input type="text" value={editContactEmail} onChange={(e) => setEditContactEmail(e.target.value)} className="input-premium" />
                 </div>
               </div>
 

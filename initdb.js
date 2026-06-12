@@ -385,7 +385,7 @@ async function init() {
       const encryptedPass = hashPassword('after2026');
       await db.query(`
         INSERT INTO contatos (id, clienteId, nome, cargo, telefone, whatsapp, email, prioridadeEscalonamento, acessos, password, apiToken)
-        VALUES ('cont_aurea', 'cli_aurea', 'Ana da Aurea', 'Gestora de Projetos', '11999999999', '11999999999', 'cliente@aurea.com', 1, '["Aprovações de Criativos", "Cronograma de Projetos", "Planejamento de Campanhas", "Calendário de Marketing"]', ?, 'flowai_tk_aurea_client_default_integration_key')
+        VALUES ('cont_aurea', 'cli_aurea', 'Ana da Aurea', 'Gestora de Projetos', '11999999999', '11999999999', 'admin', 1, '["Aprovações de Criativos", "Cronograma de Projetos", "Planejamento de Campanhas", "Calendário de Marketing"]', ?, 'flowai_tk_aurea_client_default_integration_key')
       `, [encryptedPass]);
       console.log('[INITDB] Seed: Contato padrão cont_aurea inserido.');
     }

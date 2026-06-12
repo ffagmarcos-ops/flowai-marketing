@@ -161,20 +161,19 @@ export const KanbanView: React.FC = () => {
   // Create Demand Submit
   const handleCreateDemanda = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle || !newClienteId || !newPrazo) {
-      alert('Preencha os campos obrigatórios (Título, Cliente e Prazo)');
-      return;
-    }
+    const finalClienteId = newClienteId || (clientes[0]?.id || 'cli_aurea');
+    const finalTitle = newTitle.trim() || 'Demanda Sem Título';
+    const finalPrazo = newPrazo || new Date().toISOString().split('T')[0];
 
     const targetId = 'd' + (demandas.length + 1);
 
     addDemanda({
-      clienteId: newClienteId,
-      titulo: newTitle,
+      clienteId: finalClienteId,
+      titulo: finalTitle,
       descricao: newDesc,
       categoria: newCat,
       prioridade: newPrior,
-      prazo: newPrazo + 'T18:00:00Z',
+      prazo: finalPrazo + 'T18:00:00Z',
       responsavelId: newResponsavelId || currentUsuario.id,
       status: 'Solicitado',
       anexos: newAnexoUrl ? [newAnexoUrl] : [],
@@ -183,15 +182,15 @@ export const KanbanView: React.FC = () => {
 
     // SIMULATED OUTBOUND WHATSAPP NOTIFICATION
     if (newShareWhatsapp) {
-      const clientObj = clientes.find(c => c.id === newClienteId);
+      const clientObj = clientes.find(c => c.id === finalClienteId);
       const activeContacts = contatos.filter(co => newAprovadoresIds.includes(co.id));
       const approverNames = activeContacts.map(co => co.nome);
-      const dateStr = new Date(newPrazo + 'T18:00:00Z').toLocaleDateString('pt-BR');
+      const dateStr = new Date(finalPrazo + 'T18:00:00Z').toLocaleDateString('pt-BR');
       const approverList = approverNames.length > 0 ? approverNames.map(name => `@${name}`).join(', ') : 'Qualquer contato habilitado';
       
-      const shareMsg = `📢 *NOVA DEMANDA DE MARKETING OPERACIONAL* 📢\n\n*Cliente:* ${clientObj?.nomeFantasia}\n*Título:* ${newTitle}\n*Categoria:* ${newCat}\n*Prioridade:* ${newPrior}\n*Prazo Limite:* ${dateStr}\n\n*Aprovador(es) Notificado(s):* ${approverList}\n\n🔗 *Link para aprovar em um clique:* https://flowai.com/aprovacao/${targetId}\n\n_Por favor, clique no link ou responda a esta mensagem dizendo "Aprovado" ou detalhando os ajustes necessários. Obrigado!_`;
+      const shareMsg = `📢 *NOVA DEMANDA DE MARKETING OPERACIONAL* 📢\n\n*Cliente:* ${clientObj?.nomeFantasia}\n*Título:* ${finalTitle}\n*Categoria:* ${newCat}\n*Prioridade:* ${newPrior}\n*Prazo Limite:* ${dateStr}\n\n*Aprovador(es) Notificado(s):* ${approverList}\n\n🔗 *Link para aprovar em um clique:* https://flowai.com/aprovacao/${targetId}\n\n_Por favor, clique no link ou responda a esta mensagem dizendo "Aprovado" ou detalhando os ajustes necessários. Obrigado!_`;
 
-      enviarMensagemWhatsApp(newClienteId, shareMsg, 'saida');
+      enviarMensagemWhatsApp(finalClienteId, shareMsg, 'saida');
     }
 
     // Reset Form
@@ -211,19 +210,19 @@ export const KanbanView: React.FC = () => {
     e.preventDefault();
     if (currentUsuario.clienteId) return; // Client users cannot edit demands!
     if (!editingDemanda) return;
-    if (!editTitle || !editClienteId || !editPrazo) {
-      alert('Preencha os campos obrigatórios (Título, Cliente e Prazo)');
-      return;
-    }
+    
+    const finalClienteId = editClienteId || (clientes[0]?.id || 'cli_aurea');
+    const finalTitle = editTitle.trim() || 'Demanda Sem Título';
+    const finalPrazo = editPrazo || new Date().toISOString().split('T')[0];
 
     updateDemanda({
       ...editingDemanda,
-      clienteId: editClienteId,
-      titulo: editTitle,
+      clienteId: finalClienteId,
+      titulo: finalTitle,
       descricao: editDesc,
       categoria: editCat,
       prioridade: editPrior,
-      prazo: editPrazo + 'T18:00:00Z',
+      prazo: finalPrazo + 'T18:00:00Z',
       responsavelId: editResponsavelId,
       status: editStatus,
       anexos: editAnexoUrl ? [editAnexoUrl] : editingDemanda.anexos,
@@ -622,7 +621,6 @@ export const KanbanView: React.FC = () => {
                   onChange={(e) => setNewTitle(e.target.value)} 
                   className="input-premium" 
                   placeholder="Ex: Encarte de Ofertas Semanal"
-                  required
                 />
               </div>
 
@@ -630,13 +628,12 @@ export const KanbanView: React.FC = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    Cliente Relacionado *
+                    Cliente Relacionado
                   </label>
                   <select 
                     value={newClienteId} 
                     onChange={(e) => setNewClienteId(e.target.value)}
                     className="input-premium"
-                    required
                   >
                     <option value="">Selecione o Cliente</option>
                     {clientes.map(c => (
@@ -646,13 +643,12 @@ export const KanbanView: React.FC = () => {
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    Responsável Técnico (Agência) *
+                    Responsável Técnico (Agência)
                   </label>
                   <select 
                     value={newResponsavelId} 
                     onChange={(e) => setNewResponsavelId(e.target.value)}
                     className="input-premium"
-                    required
                   >
                     {usuarios.filter(u => ['agencia', 'gestor', 'designer', 'colaborador', 'superadmin'].includes(u.role)).map(u => (
                       <option key={u.id} value={u.id}>{u.nome} ({u.cargo || u.role})</option>
@@ -703,14 +699,13 @@ export const KanbanView: React.FC = () => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    Prazo Limite *
+                    Prazo Limite
                   </label>
                   <input 
                     type="date" 
                     value={newPrazo} 
                     onChange={(e) => setNewPrazo(e.target.value)} 
-                    className="input-premium" 
-                    required
+                    className="input-premium"
                   />
                 </div>
 
@@ -971,14 +966,13 @@ export const KanbanView: React.FC = () => {
                 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    Título da Demanda *
+                    Título da Demanda
                   </label>
                   <input 
                     type="text" 
                     value={editTitle} 
                     onChange={(e) => setEditTitle(e.target.value)} 
                     className="input-premium" 
-                    required
                     disabled={!!currentUsuario.clienteId}
                   />
                 </div>
@@ -1036,14 +1030,13 @@ export const KanbanView: React.FC = () => {
 
                   <div>
                     <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                      Prazo Limite *
+                      Prazo Limite
                     </label>
                     <input 
                       type="date" 
                       value={editPrazo} 
                       onChange={(e) => setEditPrazo(e.target.value)} 
                       className="input-premium" 
-                      required
                       disabled={!!currentUsuario.clienteId}
                     />
                   </div>

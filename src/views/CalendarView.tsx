@@ -262,21 +262,21 @@ export const CalendarView: React.FC = () => {
   const handleSaveDemanda = (e: React.FormEvent) => {
     e.preventDefault();
     if (currentUsuario.clienteId) return; // Client users cannot create/edit demands!
-    if (!demandaTitulo || !demandaPrazo || !demandaClienteId) {
-      alert('Preencha os campos obrigatórios.');
-      return;
-    }
+    
+    const finalClienteId = demandaClienteId || (clientes[0]?.id || 'cli_aurea');
+    const finalTitulo = demandaTitulo.trim() || 'Demanda Sem Título';
+    const finalPrazo = demandaPrazo || new Date().toISOString().split('T')[0];
 
     if (modalMode === 'create') {
       const targetId = 'd' + (demandas.length + 1);
       addDemanda({
-        clienteId: demandaClienteId,
-        titulo: demandaTitulo,
+        clienteId: finalClienteId,
+        titulo: finalTitulo,
         descricao: demandaDescricao,
         categoria: demandaCategoria as CategoriaDemanda,
         responsavelId: demandaResponsavel,
         prioridade: demandaPrioridade as PrioridadeDemanda,
-        prazo: `${demandaPrazo}T18:00:00Z`,
+        prazo: `${finalPrazo}T18:00:00Z`,
         status: demandaStatus as StatusDemanda,
         anexos: demandaAnexoUrl ? [demandaAnexoUrl] : [],
         aprovadoresIds: aprovadoresIds
@@ -284,26 +284,26 @@ export const CalendarView: React.FC = () => {
 
       // SIMULATED OUTBOUND WHATSAPP NOTIFICATION
       if (shareWhatsapp) {
-        const clientObj = clientes.find(c => c.id === demandaClienteId);
+        const clientObj = clientes.find(c => c.id === finalClienteId);
         const activeContacts = contatos.filter(co => aprovadoresIds.includes(co.id));
         const approverNames = activeContacts.map(co => co.nome);
-        const dateStr = new Date(`${demandaPrazo}T18:00:00Z`).toLocaleDateString('pt-BR');
+        const dateStr = new Date(`${finalPrazo}T18:00:00Z`).toLocaleDateString('pt-BR');
         const approverList = approverNames.length > 0 ? approverNames.map(name => `@${name}`).join(', ') : 'Qualquer contato habilitado';
         
-        const shareMsg = `📢 *NOVA DEMANDA DE MARKETING OPERACIONAL* 📢\n\n*Cliente:* ${clientObj?.nomeFantasia}\n*Título:* ${demandaTitulo}\n*Categoria:* ${demandaCategoria}\n*Prioridade:* ${demandaPrioridade}\n*Prazo Limite:* ${dateStr}\n\n*Aprovador(es) Notificado(s):* ${approverList}\n\n🔗 *Link para aprovar em um clique:* https://flowai.com/aprovacao/${targetId}\n\n_Por favor, clique no link ou responda a esta mensagem dizendo "Aprovado" ou detalhando os ajustes necessários. Obrigado!_`;
+        const shareMsg = `📢 *NOVA DEMANDA DE MARKETING OPERACIONAL* 📢\n\n*Cliente:* ${clientObj?.nomeFantasia}\n*Título:* ${finalTitulo}\n*Categoria:* ${demandaCategoria}\n*Prioridade:* ${demandaPrioridade}\n*Prazo Limite:* ${dateStr}\n\n*Aprovador(es) Notificado(s):* ${approverList}\n\n🔗 *Link para aprovar em um clique:* https://flowai.com/aprovacao/${targetId}\n\n_Por favor, clique no link ou responda a esta mensagem dizendo "Aprovado" ou detalhando os ajustes necessários. Obrigado!_`;
 
-        enviarMensagemWhatsApp(demandaClienteId, shareMsg, 'saida');
+        enviarMensagemWhatsApp(finalClienteId, shareMsg, 'saida');
       }
     } else if (modalMode === 'edit' && editingDemanda) {
       updateDemanda({
         ...editingDemanda,
-        clienteId: demandaClienteId,
-        titulo: demandaTitulo,
+        clienteId: finalClienteId,
+        titulo: finalTitulo,
         descricao: demandaDescricao,
         categoria: demandaCategoria as CategoriaDemanda,
         responsavelId: demandaResponsavel,
         prioridade: demandaPrioridade as PrioridadeDemanda,
-        prazo: `${demandaPrazo}T18:00:00Z`,
+        prazo: `${finalPrazo}T18:00:00Z`,
         status: demandaStatus as StatusDemanda,
         anexos: demandaAnexoUrl ? [demandaAnexoUrl] : [],
         aprovadoresIds: aprovadoresIds
@@ -1006,7 +1006,6 @@ export const CalendarView: React.FC = () => {
                       value={demandaClienteId} 
                       onChange={(e) => setDemandaClienteId(e.target.value)}
                       className="input-premium"
-                      required
                       disabled
                     >
                       <option value="">Selecione a empresa</option>
@@ -1018,14 +1017,13 @@ export const CalendarView: React.FC = () => {
 
                   <div>
                     <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                      Título da Demanda *
+                      Título da Demanda
                     </label>
                     <input 
                       type="text" 
                       value={demandaTitulo} 
                       onChange={(e) => setDemandaTitulo(e.target.value)} 
                       className="input-premium" 
-                      required 
                       disabled={!!currentUsuario.clienteId}
                     />
                   </div>
@@ -1072,14 +1070,13 @@ export const CalendarView: React.FC = () => {
 
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                        Prazo Limite *
+                        Prazo Limite
                       </label>
                       <input 
                         type="date" 
                         value={demandaPrazo} 
                         onChange={(e) => setDemandaPrazo(e.target.value)} 
                         className="input-premium" 
-                        required
                         disabled={!!currentUsuario.clienteId}
                       />
                     </div>
@@ -1440,13 +1437,12 @@ export const CalendarView: React.FC = () => {
                 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    Empresa / Cliente *
+                    Empresa / Cliente
                   </label>
                   <select 
                     value={demandaClienteId} 
                     onChange={(e) => setDemandaClienteId(e.target.value)}
                     className="input-premium"
-                    required
                   >
                     <option value="">Selecione a empresa</option>
                     {clientes.map(c => (
@@ -1457,14 +1453,13 @@ export const CalendarView: React.FC = () => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                    Título da Demanda *
+                    Título da Demanda
                   </label>
                   <input 
                     type="text" 
                     value={demandaTitulo} 
                     onChange={(e) => setDemandaTitulo(e.target.value)} 
                     className="input-premium" 
-                    required 
                     placeholder="Ex: Post de Ofertas / Vídeo de Campanha"
                   />
                 </div>
@@ -1509,14 +1504,13 @@ export const CalendarView: React.FC = () => {
 
                   <div>
                     <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '6px', color: '#B5B5B5' }}>
-                      Prazo Limite *
+                      Prazo Limite
                     </label>
                     <input 
                       type="date" 
                       value={demandaPrazo} 
                       onChange={(e) => setDemandaPrazo(e.target.value)} 
-                      className="input-premium" 
-                      required
+                      className="input-premium"
                     />
                   </div>
                 </div>

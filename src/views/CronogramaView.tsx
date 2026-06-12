@@ -220,15 +220,17 @@ export const CronogramaView: React.FC = () => {
   // Add Project Submit
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newProjName || !newProjClientId) {
-      alert('Preencha os campos obrigatórios!');
+    const projName = newProjName.trim() || 'Novo Projeto';
+    const clientId = newProjClientId || (clientes[0]?.id || '');
+    if (!clientId) {
+      alert('Nenhum cliente disponível para associar ao projeto.');
       return;
     }
-    const client = clientes.find(c => c.id === newProjClientId);
+    const client = clientes.find(c => c.id === clientId);
     const clientName = client ? client.nomeFantasia : 'Cliente CRM';
     const banner = newProjBanner || BANNER_PRESETS[0].url;
 
-    await addProjetoCronograma(newProjName, clientName, newProjStartDate, newProjClientId, banner);
+    await addProjetoCronograma(projName, clientName, newProjStartDate, clientId, banner);
 
     setShowNewProjModal(false);
     setNewProjName('');
@@ -241,10 +243,11 @@ export const CronogramaView: React.FC = () => {
   // Add Custom Step Submit
   const handleAddCustomStep = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeProject || !newStepName) return;
+    if (!activeProject) return;
+    const stepName = newStepName.trim() || 'Etapa Customizada';
     const image = newStepImage || 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=500';
 
-    await addEtapaCustomizada(activeProject.id, newStepName, newStepDesc, newStepDays, image);
+    await addEtapaCustomizada(activeProject.id, stepName, newStepDesc, newStepDays, image);
 
     setNewStepName('');
     setNewStepDesc('');
@@ -885,7 +888,7 @@ export const CronogramaView: React.FC = () => {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           <label style={{ fontSize: '0.7rem', color: '#888', fontWeight: 700 }}>Nome da Etapa</label>
                           <input 
-                            type="text" required
+                            type="text"
                             placeholder="Ex: Treinamento Operacional"
                             value={newStepName}
                             onChange={e => setNewStepName(e.target.value)}
@@ -923,7 +926,7 @@ export const CronogramaView: React.FC = () => {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           <label style={{ fontSize: '0.7rem', color: '#888', fontWeight: 700 }}>Duração (Dias)</label>
                           <input 
-                            type="number" required min={0}
+                            type="number" min={0}
                             value={newStepDays}
                             onChange={e => setNewStepDays(Number(e.target.value))}
                             style={{
@@ -1101,7 +1104,7 @@ export const CronogramaView: React.FC = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '0.78rem', color: '#B5B5B5', fontWeight: 700 }}>Nome do Projeto</label>
                 <input 
-                  type="text" required
+                  type="text"
                   placeholder="Ex: Aurea Clube de Benefícios"
                   value={newProjName}
                   onChange={e => setNewProjName(e.target.value)}
@@ -1120,7 +1123,6 @@ export const CronogramaView: React.FC = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '0.78rem', color: '#B5B5B5', fontWeight: 700 }}>Cliente Associado (CRM)</label>
                 <select
-                  required
                   value={newProjClientId}
                   onChange={e => setNewProjClientId(e.target.value)}
                   style={{
@@ -1143,7 +1145,7 @@ export const CronogramaView: React.FC = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '0.78rem', color: '#B5B5B5', fontWeight: 700 }}>Data de Início</label>
                 <input 
-                  type="date" required
+                  type="date"
                   value={newProjStartDate}
                   onChange={e => setNewProjStartDate(e.target.value)}
                   style={{
