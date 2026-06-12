@@ -65,8 +65,13 @@ export const CronogramaView: React.FC = () => {
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
 
   useEffect(() => {
-    if (filteredProjects.length > 0 && !selectedProjectId) {
-      setSelectedProjectId(filteredProjects[0].id);
+    if (filteredProjects.length > 0) {
+      const isValid = filteredProjects.some(p => p.id === selectedProjectId);
+      if (!isValid) {
+        setSelectedProjectId(filteredProjects[0].id);
+      }
+    } else {
+      setSelectedProjectId('');
     }
   }, [filteredProjects, selectedProjectId]);
 
