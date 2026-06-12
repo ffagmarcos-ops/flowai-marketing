@@ -13,6 +13,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView }) =
     { id: 'dashboard', label: 'Dashboard Executivo', icon: 'fa-chart-line' },
     { id: 'kanban', label: 'Fluxo de Trabalho Inteligente', icon: 'fa-chalkboard-teacher' },
     { id: 'planner', label: 'Planejamento de Campanhas', icon: 'fa-calendar-plus' },
+    { id: 'cronograma', label: 'Cronograma de Projetos', icon: 'fa-stream' },
     { id: 'crm', label: 'CRM & Contatos', icon: 'fa-users' },
     { id: 'whatsapp', label: 'Central Conversas & IA', icon: 'fa-comments' },
     { id: 'calendar', label: 'Calendário de Marketing', icon: 'fa-calendar-alt' },
@@ -34,6 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView }) =
         if (item.id === 'calendar') return true;
         if (item.id === 'approval') return true;
         if (item.id === 'planner') return true;
+        if (item.id === 'cronograma') return true;
         if (item.id === 'kanban') return activeAcessos.includes('Fluxo de Trabalho Inteligente');
         if (item.id === 'whatsapp') return activeAcessos.includes('Central de WhatsApp');
         if (item.id === 'reports') return activeAcessos.includes('Relatórios & Metas SLA');

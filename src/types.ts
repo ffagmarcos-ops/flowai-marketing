@@ -160,3 +160,33 @@ export interface ItemPlanejamento {
   demandaGeradaId?: string; // links to generated demand if converted
 }
 
+export interface ProjetoCronograma {
+  id: string;
+  clienteId: string;
+  name: string;
+  slug: string;
+  client_name: string;
+  banner_url?: string;
+  logo_url?: string;
+  start_date: string; // YYYY-MM-DD
+  expected_delivery: string; // YYYY-MM-DD
+  status: 'aguardando' | 'andamento' | 'concluido';
+  progress: number; // 0-100
+  color: string; // hex color
+  criadoEm?: string;
+}
+
+export interface EtapaCronograma {
+  id: string;
+  projetoId: string;
+  step_order: number;
+  name: string;
+  description: string;
+  percentage: number; // 0-100
+  status: 'aguardando' | 'andamento' | 'concluido';
+  duration_days: number;
+  expected_date?: string; // YYYY-MM-DD
+  image_url?: string;
+}
+
+

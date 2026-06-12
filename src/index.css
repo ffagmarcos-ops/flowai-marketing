@@ -894,3 +894,174 @@ dialog {
   flex-direction: column;
   gap: 12px;
 }
+
+/* CRONOGRAMA DE PROJETOS CUSTOM PREMIUM STYLES */
+.circular-progress-wrapper {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.circular-chart {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.circle-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.05);
+  stroke-width: 2.8;
+}
+
+.circle-fill {
+  fill: none;
+  stroke: var(--gold-primary);
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.5s ease;
+}
+
+.rocket-icon-center {
+  position: absolute;
+  font-size: 1.8rem;
+  animation: float-rocket 3s ease-in-out infinite;
+}
+
+@keyframes float-rocket {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-5px) rotate(5deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
+.timeline-gallery-container {
+  display: flex;
+  overflow-x: auto;
+  gap: 20px;
+  padding: 10px 4px 20px 4px;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+}
+
+.timeline-gallery-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.timeline-gallery-container::-webkit-scrollbar-thumb {
+  background: var(--bg-secondary);
+  border-radius: 4px;
+}
+
+.timeline-gallery-container::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-primary);
+}
+
+.timeline-card-visual {
+  flex: 0 0 280px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--bg-secondary);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  transition: var(--transition-normal);
+  scroll-snap-align: start;
+}
+
+.timeline-card-visual:hover {
+  transform: translateY(-6px);
+  border-color: var(--gold-primary);
+  box-shadow: var(--shadow-md), var(--shadow-gold);
+}
+
+.timeline-card-visual.active {
+  border-color: var(--gold-primary);
+  box-shadow: var(--shadow-md), var(--shadow-gold);
+}
+
+.timeline-card-image-box {
+  height: 150px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.timeline-card-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%);
+}
+
+.timeline-card-tag {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.timeline-card-date {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background-color: var(--gold-primary);
+  color: #000;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.timeline-card-title {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #FFF;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table-cronograma {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+.table-cronograma th, .table-cronograma td {
+  padding: 16px 20px;
+  text-align: left;
+}
+
+.table-cronograma th {
+  background-color: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--bg-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.table-cronograma td {
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  font-size: 0.85rem;
+}
+
+.table-cronograma tr:hover {
+  background-color: rgba(255,255,255,0.01);
+}

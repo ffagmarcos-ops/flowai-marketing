@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { 
   Usuario, Cliente, Contato, Demanda, Comentario, 
   Historico, Aprovacao, MensagemWhatsapp, Automacao, RoleType, StatusDemanda,
-  ItemPlanejamento
+  ItemPlanejamento, ProjetoCronograma, EtapaCronograma
 } from '../types';
 
 /**
@@ -31,6 +31,18 @@ interface DataContextType {
   setSelectedCalendarClientId: (id: string) => void;
   selectedApprovalDemandId: string;
   setSelectedApprovalDemandId: (id: string) => void;
+  
+  // Cronograma de Projetos
+  projetosCronograma: ProjetoCronograma[];
+  etapasCronograma: EtapaCronograma[];
+  addProjetoCronograma: (name: string, clientName: string, startDate: string, clienteId: string, bannerUrl?: string) => Promise<void>;
+  updateProjetoCronograma: (proj: ProjetoCronograma) => Promise<void>;
+  deleteProjetoCronograma: (id: string) => Promise<void>;
+  updateEtapaCronograma: (projectId: string, stepId: string, percentage: number, status: 'aguardando' | 'andamento' | 'concluido', durationDays: number) => Promise<void>;
+  addEtapaCustomizada: (projectId: string, name: string, description: string, durationDays: number, imageUrl?: string) => Promise<void>;
+  reorderEtapasCronograma: (projectId: string, orderedStepIds: string[]) => Promise<void>;
+  definirEtapaAtualCronograma: (projectId: string, stepId: string) => Promise<void>;
+
   // Campaign Planner
   itensPlanejamento: ItemPlanejamento[];
   addItemPlanejamento: (item: Omit<ItemPlanejamento, 'id'>) => void;
@@ -98,6 +110,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [mensagensWhatsapp, setMensagensWhatsapp] = useState<MensagemWhatsapp[]>(DEFAULT_WHATSAPP);
   const [automacoes, setAutomacoes] = useState<Automacao[]>(DEFAULT_AUTOMACOES);
   const [itensPlanejamento, setItensPlanejamento] = useState<ItemPlanejamento[]>([]);
+  const [projetosCronograma, setProjetosCronograma] = useState<ProjetoCronograma[]>([]);
+  const [etapasCronograma, setEtapasCronograma] = useState<EtapaCronograma[]>([]);
   const [aiLogs, setAiLogs] = useState<string[]>([]);
 
   const [currentUsuario, setCurrentUsuario] = useState<Usuario>(() => {
@@ -230,12 +244,34 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (data.mensagensWhatsapp) setMensagensWhatsapp(data.mensagensWhatsapp);
         if (data.automacoes && data.automacoes.length > 0) setAutomacoes(data.automacoes);
         if (data.itensPlanejamento) setItensPlanejamento(data.itensPlanejamento);
+        if (data.projetos) setProjetosCronograma(data.projetos);
+        if (data.etapas) setEtapasCronograma(data.etapas);
       } catch (err) {
         console.error('[DataContext] Erro ao carregar dados do MariaDB local:', err);
       }
     };
     loadData();
   }, []);
+
+  // Offline LocalStorage Fallbacks & Sync Effects
+  useEffect(() => {
+    const localProjs = localStorage.getItem('mf_projetos_cronograma');
+    const localEtapas = localStorage.getItem('mf_etapas_cronograma');
+    if (localProjs && localProjs !== '[]') setProjetosCronograma(JSON.parse(localProjs));
+    if (localEtapas && localEtapas !== '[]') setEtapasCronograma(JSON.parse(localEtapas));
+  }, []);
+
+  useEffect(() => {
+    if (projetosCronograma && projetosCronograma.length > 0) {
+      localStorage.setItem('mf_projetos_cronograma', JSON.stringify(projetosCronograma));
+    }
+  }, [projetosCronograma]);
+
+  useEffect(() => {
+    if (etapasCronograma && etapasCronograma.length > 0) {
+      localStorage.setItem('mf_etapas_cronograma', JSON.stringify(etapasCronograma));
+    }
+  }, [etapasCronograma]);
 
   // Monitor initial loading for sound alerts
   useEffect(() => {
@@ -914,6 +950,373 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }).catch(err => console.error(err));
   };
 
+  // utility: recalculate project dates in cascading order in frontend memory
+  const recalculateProjectDatesLocal = (projectId: string, currentStart: string, stepsList: EtapaCronograma[]): { updatedSteps: EtapaCronograma[], expectedDelivery: string, progress: number } => {
+    const steps = [...stepsList].filter(s => s.projetoId === projectId).sort((a, b) => a.step_order - b.step_order);
+    
+    let currentDate = new Date(currentStart);
+    let totalPerc = 0;
+    
+    const updatedSteps = steps.map(step => {
+      // expected_date = current date + duration_days
+      currentDate.setDate(currentDate.getDate() + (step.duration_days || 0));
+      const expectedDateStr = currentDate.toISOString().split('T')[0];
+      totalPerc += step.percentage || 0;
+      return {
+        ...step,
+        expected_date: expectedDateStr
+      };
+    });
+    
+    const expectedDelivery = currentDate.toISOString().split('T')[0];
+    const progress = steps.length > 0 ? Math.round(totalPerc / steps.length) : 0;
+    
+    return {
+      updatedSteps,
+      expectedDelivery,
+      progress
+    };
+  };
+
+  const addProjetoCronograma = async (name: string, clientName: string, startDate: string, clienteId: string, bannerUrl?: string) => {
+    const projectId = 'proj_' + Date.now();
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    
+    const DEFAULT_STEPS = [
+      { order: 1, name: 'Requisitos e Coleta de Dados', desc: 'Compreensão das necessidades e regras de negócio.', img: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=500' },
+      { order: 2, name: 'Planejamento do Projeto', desc: 'Definição de prazos, milestones e arquitetura.', img: 'https://images.unsplash.com/photo-1507207611509-ec012433ff52?w=500' },
+      { order: 3, name: 'Design UI/UX', desc: 'Prototipação das telas e fluxo de navegação.', img: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=500' },
+      { order: 4, name: 'Aprovação do Design', desc: 'Validação visual com o cliente.', img: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=500' },
+      { order: 5, name: 'Estruturação e Banco de Dados', desc: 'Setup de servidores, repositórios e banco de dados.', img: 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=500' },
+      { order: 6, name: 'Desenvolvimento Backend', desc: 'Criação das APIs, lógica de servidor e segurança.', img: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=500' },
+      { order: 7, name: 'Desenvolvimento Frontend', desc: 'Construção da interface e integração com a API.', img: 'https://images.unsplash.com/photo-1547082299-de196ea013d6?w=500' },
+      { order: 8, name: 'Testes Internos (QA)', desc: 'Testes de qualidade para garantir que não existam bugs.', img: 'https://images.unsplash.com/photo-1516259762381-22954d7d3ad2?w=500' },
+      { order: 9, name: 'Versão Beta para Cliente', desc: 'Disponibilização da versão Beta para o cliente validar.', img: 'https://images.unsplash.com/photo-1555421689-d68471e189f2?w=500' },
+      { order: 10, name: 'Ajustes Finais', desc: 'Correção de feedback gerado na versão Beta.', img: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=500' },
+      { order: 11, name: 'Publicação nas Lojas', desc: 'Subida oficial do projeto para produção.', img: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=500' }
+    ];
+
+    // Build the stages list
+    let tempDate = new Date(startDate);
+    const initialSteps: EtapaCronograma[] = DEFAULT_STEPS.map(step => {
+      tempDate.setDate(tempDate.getDate() + 15);
+      const expectedDateStr = tempDate.toISOString().split('T')[0];
+      return {
+        id: `step_${projectId}_${step.order}`,
+        projetoId: projectId,
+        step_order: step.order,
+        name: step.name,
+        description: step.desc,
+        percentage: 0,
+        status: 'aguardando',
+        duration_days: 15,
+        expected_date: expectedDateStr,
+        image_url: step.img
+      };
+    });
+
+    const expectedDelivery = tempDate.toISOString().split('T')[0];
+
+    const newProj: ProjetoCronograma = {
+      id: projectId,
+      clienteId,
+      name,
+      slug,
+      client_name: clientName,
+      banner_url: bannerUrl || 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1000',
+      start_date: startDate,
+      expected_delivery: expectedDelivery,
+      status: 'aguardando',
+      progress: 0,
+      color: '#2563EB',
+      criadoEm: new Date().toISOString()
+    };
+
+    setProjetosCronograma(prev => [...prev, newProj]);
+    setEtapasCronograma(prev => [...prev, ...initialSteps]);
+
+    // Send to server
+    try {
+      await fetch(`/api/cronograma/projetos`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(newProj)
+      });
+
+      for (const step of initialSteps) {
+        await fetch(`/api/cronograma/projetos/${projectId}/etapas`, {
+          method: 'POST',
+          headers: getHeaders(),
+          body: JSON.stringify(step)
+        });
+      }
+    } catch (e) {
+      console.warn('Salvando projeto localmente (modo offline)');
+    }
+  };
+
+  const updateProjetoCronograma = async (proj: ProjetoCronograma) => {
+    setProjetosCronograma(prev => prev.map(p => p.id === proj.id ? proj : p));
+    try {
+      await fetch(`/api/cronograma/projetos/${proj.id}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(proj)
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const deleteProjetoCronograma = async (id: string) => {
+    setProjetosCronograma(prev => prev.filter(p => p.id !== id));
+    setEtapasCronograma(prev => prev.filter(e => e.projetoId !== id));
+    try {
+      await fetch(`/api/cronograma/projetos/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders()
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const updateEtapaCronograma = async (projectId: string, stepId: string, percentage: number, status: 'aguardando' | 'andamento' | 'concluido', durationDays: number) => {
+    // 1. Update target step locally first
+    const updatedLocalEtapas = etapasCronograma.map(e => {
+      if (e.id === stepId && e.projetoId === projectId) {
+        return { ...e, percentage, status, duration_days: durationDays };
+      }
+      return e;
+    });
+
+    // 2. Cascade dates based on new values
+    const project = projetosCronograma.find(p => p.id === projectId);
+    if (!project) return;
+
+    const { updatedSteps, expectedDelivery, progress } = recalculateProjectDatesLocal(projectId, project.start_date, updatedLocalEtapas);
+
+    // Update stages state
+    setEtapasCronograma(prev => prev.map(e => {
+      const match = updatedSteps.find(us => us.id === e.id);
+      return match ? match : e;
+    }));
+
+    // Update project state
+    const updatedProject = { ...project, progress, expected_delivery: expectedDelivery };
+    setProjetosCronograma(prev => prev.map(p => p.id === projectId ? updatedProject : p));
+
+    // 3. Save to database
+    try {
+      // Update target stage in API
+      const targetStep = updatedSteps.find(us => us.id === stepId);
+      if (targetStep) {
+        await fetch(`/api/cronograma/projetos/${projectId}/etapas/${stepId}`, {
+          method: 'PUT',
+          headers: getHeaders(),
+          body: JSON.stringify(targetStep)
+        });
+      }
+
+      // Update all recalculated stages in API
+      for (const step of updatedSteps) {
+        if (step.id !== stepId) {
+          await fetch(`/api/cronograma/projetos/${projectId}/etapas/${step.id}`, {
+            method: 'PUT',
+            headers: getHeaders(),
+            body: JSON.stringify(step)
+          });
+        }
+      }
+
+      // Update project progress and expected delivery in API
+      await fetch(`/api/cronograma/projetos/${projectId}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(updatedProject)
+      });
+    } catch (e) {
+      console.warn('Erro de rede, cronograma atualizado localmente.');
+    }
+  };
+
+  const addEtapaCustomizada = async (projectId: string, name: string, description: string, durationDays: number, imageUrl?: string) => {
+    const project = projetosCronograma.find(p => p.id === projectId);
+    if (!project) return;
+
+    const projectSteps = etapasCronograma.filter(e => e.projetoId === projectId);
+    const maxOrder = projectSteps.reduce((max, s) => s.step_order > max ? s.step_order : max, 0);
+    const nextOrder = maxOrder + 1;
+
+    const newStepId = 'step_custom_' + Date.now();
+    const newStep: EtapaCronograma = {
+      id: newStepId,
+      projetoId: projectId,
+      step_order: nextOrder,
+      name,
+      description,
+      percentage: 0,
+      status: 'aguardando',
+      duration_days: durationDays,
+      image_url: imageUrl || 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=500'
+    };
+
+    // Calculate cascading dates including the new stage
+    const nextLocalEtapas = [...etapasCronograma, newStep];
+    const { updatedSteps, expectedDelivery, progress } = recalculateProjectDatesLocal(projectId, project.start_date, nextLocalEtapas);
+
+    // Update local state
+    setEtapasCronograma(prev => {
+      const filtered = prev.filter(e => e.projetoId !== projectId);
+      return [...filtered, ...updatedSteps];
+    });
+
+    const updatedProject = { ...project, progress, expected_delivery: expectedDelivery };
+    setProjetosCronograma(prev => prev.map(p => p.id === projectId ? updatedProject : p));
+
+    // Save to server
+    try {
+      // POST the new step
+      await fetch(`/api/cronograma/projetos/${projectId}/etapas`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(newStep)
+      });
+
+      // PUT recalculated expected_dates for all steps
+      for (const step of updatedSteps) {
+        await fetch(`/api/cronograma/projetos/${projectId}/etapas/${step.id}`, {
+          method: 'PUT',
+          headers: getHeaders(),
+          body: JSON.stringify(step)
+        });
+      }
+
+      // PUT project updates
+      await fetch(`/api/cronograma/projetos/${projectId}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(updatedProject)
+      });
+    } catch (e) {
+      console.warn('Erro de rede, adicionado localmente.');
+    }
+  };
+
+  const reorderEtapasCronograma = async (projectId: string, orderedStepIds: string[]) => {
+    // 1. Update locally
+    const reorderedLocalEtapas = etapasCronograma.map(e => {
+      if (e.projetoId === projectId) {
+        const nextOrderIdx = orderedStepIds.indexOf(e.id);
+        if (nextOrderIdx !== -1) {
+          return { ...e, step_order: nextOrderIdx + 1 };
+        }
+      }
+      return e;
+    });
+
+    const project = projetosCronograma.find(p => p.id === projectId);
+    if (!project) return;
+
+    // Recalculate dates based on new orders
+    const { updatedSteps, expectedDelivery, progress } = recalculateProjectDatesLocal(projectId, project.start_date, reorderedLocalEtapas);
+
+    setEtapasCronograma(prev => prev.map(e => {
+      const match = updatedSteps.find(us => us.id === e.id);
+      return match ? match : e;
+    }));
+
+    const updatedProject = { ...project, progress, expected_delivery: expectedDelivery };
+    setProjetosCronograma(prev => prev.map(p => p.id === projectId ? updatedProject : p));
+
+    // 2. Save to server
+    try {
+      await fetch(`/api/cronograma/projetos/${projectId}/etapas/reordenar`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify({ orderedStepIds })
+      });
+
+      // Update dates of all steps
+      for (const step of updatedSteps) {
+        await fetch(`/api/cronograma/projetos/${projectId}/etapas/${step.id}`, {
+          method: 'PUT',
+          headers: getHeaders(),
+          body: JSON.stringify(step)
+        });
+      }
+
+      // Update project Expected Date
+      await fetch(`/api/cronograma/projetos/${projectId}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(updatedProject)
+      });
+    } catch (e) {
+      console.warn('Reordenamento salvo localmente.');
+    }
+  };
+
+  const definirEtapaAtualCronograma = async (projectId: string, stepId: string) => {
+    // 1. Find target step
+    const targetStep = etapasCronograma.find(e => e.id === stepId && e.projetoId === projectId);
+    if (!targetStep) return;
+    const targetOrder = targetStep.step_order;
+
+    // 2. Perform updates locally
+    const nextLocalEtapas = etapasCronograma.map(e => {
+      if (e.projetoId === projectId) {
+        if (e.step_order < targetOrder) {
+          return { ...e, status: 'concluido' as const, percentage: 100 };
+        } else if (e.id === stepId) {
+          return { ...e, status: 'andamento' as const };
+        } else if (e.step_order > targetOrder) {
+          return { ...e, status: 'aguardando' as const, percentage: 0 };
+        }
+      }
+      return e;
+    });
+
+    const project = projetosCronograma.find(p => p.id === projectId);
+    if (!project) return;
+
+    // Recalculate
+    const { updatedSteps, expectedDelivery, progress } = recalculateProjectDatesLocal(projectId, project.start_date, nextLocalEtapas);
+
+    setEtapasCronograma(prev => prev.map(e => {
+      const match = updatedSteps.find(us => us.id === e.id);
+      return match ? match : e;
+    }));
+
+    const updatedProject = { ...project, progress, expected_delivery: expectedDelivery };
+    setProjetosCronograma(prev => prev.map(p => p.id === projectId ? updatedProject : p));
+
+    // 3. Save to server
+    try {
+      await fetch(`/api/cronograma/projetos/${projectId}/etapas/${stepId}/atual`, {
+        method: 'PUT',
+        headers: getHeaders()
+      });
+
+      // Update expected dates
+      for (const step of updatedSteps) {
+        await fetch(`/api/cronograma/projetos/${projectId}/etapas/${step.id}`, {
+          method: 'PUT',
+          headers: getHeaders(),
+          body: JSON.stringify(step)
+        });
+      }
+
+      await fetch(`/api/cronograma/projetos/${projectId}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(updatedProject)
+      });
+    } catch (e) {
+      console.warn('Definição de etapa atual salva localmente.');
+    }
+  };
+
   return (
     <DataContext.Provider value={{
       usuarios,
@@ -935,6 +1338,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSelectedCalendarClientId,
       selectedApprovalDemandId,
       setSelectedApprovalDemandId,
+      
+      // Cronograma
+      projetosCronograma,
+      etapasCronograma,
+      addProjetoCronograma,
+      updateProjetoCronograma,
+      deleteProjetoCronograma,
+      updateEtapaCronograma,
+      addEtapaCustomizada,
+      reorderEtapasCronograma,
+      definirEtapaAtualCronograma,
+
       itensPlanejamento,
       addItemPlanejamento,
       updateItemPlanejamento,

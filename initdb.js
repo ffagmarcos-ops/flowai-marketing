@@ -217,6 +217,39 @@ async function init() {
         aprovadoresIds LONGTEXT,
         demandaGeradaId VARCHAR(50)
       );
+    // 11. Cronograma Projetos
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS cronograma_projetos (
+        id VARCHAR(50) PRIMARY KEY,
+        clienteId VARCHAR(50) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) UNIQUE NOT NULL,
+        client_name VARCHAR(255),
+        banner_url LONGTEXT,
+        logo_url LONGTEXT,
+        start_date VARCHAR(100),
+        expected_delivery VARCHAR(100),
+        status VARCHAR(50) DEFAULT 'aguardando',
+        progress INT DEFAULT 0,
+        color VARCHAR(50) DEFAULT '#2563EB',
+        criadoEm VARCHAR(100) NOT NULL
+      );
+    `);
+
+    // 12. Cronograma Etapas
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS cronograma_etapas (
+        id VARCHAR(50) PRIMARY KEY,
+        projetoId VARCHAR(50) NOT NULL,
+        step_order INT NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        percentage INT DEFAULT 0,
+        status VARCHAR(50) DEFAULT 'aguardando',
+        duration_days INT DEFAULT 15,
+        expected_date VARCHAR(100),
+        image_url LONGTEXT
+      );
     `);
 
     // Ensure apiToken and password columns exist in usuarios (defensive migrations for existing tables)
@@ -334,6 +367,85 @@ async function init() {
         );
       }
       console.log('[INITDB] Seed: Automações iniciais inseridas.');
+    }
+
+    // Seed Clientes (for demo and cronograma integration)
+    const [clienteRows] = await db.query('SELECT COUNT(*) as count FROM clientes');
+    if (clienteRows[0].count === 0) {
+      await db.query(`
+        INSERT INTO clientes (id, agenciaId, razaoSocial, nomeFantasia, cnpj, segmento, endereco, telefones, whatsapp, email, nivelEngajamento, tempoMedioResposta, atrasosContados, aprovacoesContadas, logoUrl)
+        VALUES ('cli_aurea', 'ag1', 'Aurea Clube de Benefícios Ltda', 'Aurea Clube', '12.345.678/0001-90', 'Tecnologia', 'Av. Paulista, 1000', '11999999999', '11999999999', 'contato@aurea.com', 'excelente', 2.5, 0, 4, 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120')
+      `);
+      console.log('[INITDB] Seed: Cliente padrão cli_aurea inserido.');
+    }
+
+    // Seed Contatos
+    const [contatoRows] = await db.query('SELECT COUNT(*) as count FROM contatos');
+    if (contatoRows[0].count === 0) {
+      const encryptedPass = hashPassword('after2026');
+      await db.query(`
+        INSERT INTO contatos (id, clienteId, nome, cargo, telefone, whatsapp, email, prioridadeEscalonamento, acessos, password, apiToken)
+        VALUES ('cont_aurea', 'cli_aurea', 'Ana da Aurea', 'Gestora de Projetos', '11999999999', '11999999999', 'cliente@aurea.com', 1, '["Aprovações de Criativos", "Cronograma de Projetos", "Planejamento de Campanhas", "Calendário de Marketing"]', ?, 'flowai_tk_aurea_client_default_integration_key')
+      `, [encryptedPass]);
+      console.log('[INITDB] Seed: Contato padrão cont_aurea inserido.');
+    }
+
+    // Seed Cronograma Projetos & Etapas
+    const [projRows] = await db.query('SELECT COUNT(*) as count FROM cronograma_projetos');
+    if (projRows[0].count === 0) {
+      const sDate = new Date();
+      sDate.setDate(sDate.getDate() - 10);
+      const start_date = sDate.toISOString().split('T')[0];
+      
+      const eDate = new Date(sDate);
+      eDate.setDate(eDate.getDate() + 165);
+      const expected_delivery = eDate.toISOString().split('T')[0];
+
+      await db.query(`
+        INSERT INTO cronograma_projetos (id, clienteId, name, slug, client_name, banner_url, logo_url, start_date, expected_delivery, status, progress, color, criadoEm)
+        VALUES ('proj_aurea', 'cli_aurea', 'Aurea Clube de Benefícios', 'aurea-clube', 'Aurea', 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1000', 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120', ?, ?, 'andamento', 12, '#2563EB', ?)
+      `, [start_date, expected_delivery, new Date().toISOString()]);
+
+      const DEFAULT_CRONOGRAMA_STEPS = [
+        { order: 1, name: 'Requisitos e Coleta de Dados', desc: 'Compreensão das necessidades e regras de negócio.', duration: 15, img: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=500' },
+        { order: 2, name: 'Planejamento do Projeto', desc: 'Definição de prazos, milestones e arquitetura.', duration: 15, img: 'https://images.unsplash.com/photo-1507207611509-ec012433ff52?w=500' },
+        { order: 3, name: 'Design UI/UX', desc: 'Prototipação das telas e fluxo de navegação.', duration: 15, img: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=500' },
+        { order: 4, name: 'Aprovação do Design', desc: 'Validação visual com o cliente.', duration: 15, img: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=500' },
+        { order: 5, name: 'Estruturação e Banco de Dados', desc: 'Setup de servidores, repositórios e banco de dados.', duration: 15, img: 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=500' },
+        { order: 6, name: 'Desenvolvimento Backend', desc: 'Criação das APIs, lógica de servidor e segurança.', duration: 15, img: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=500' },
+        { order: 7, name: 'Desenvolvimento Frontend', desc: 'Construção da interface e integração com a API.', duration: 15, img: 'https://images.unsplash.com/photo-1547082299-de196ea013d6?w=500' },
+        { order: 8, name: 'Testes Internos (QA)', desc: 'Testes de qualidade para garantir que não existam bugs.', duration: 15, img: 'https://images.unsplash.com/photo-1516259762381-22954d7d3ad2?w=500' },
+        { order: 9, name: 'Versão Beta para Cliente', desc: 'Disponibilização da versão Beta para o cliente validar.', duration: 15, img: 'https://images.unsplash.com/photo-1555421689-d68471e189f2?w=500' },
+        { order: 10, name: 'Ajustes Finais', desc: 'Correção de feedback gerado na versão Beta.', duration: 15, img: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=500' },
+        { order: 11, name: 'Publicação nas Lojas', desc: 'Subida oficial do projeto para produção.', duration: 15, img: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=500' }
+      ];
+
+      let stepDate = new Date(start_date);
+      for (const step of DEFAULT_CRONOGRAMA_STEPS) {
+        stepDate.setDate(stepDate.getDate() + step.duration);
+        const expectedDateStr = stepDate.toISOString().split('T')[0];
+
+        let perc = 0;
+        let status = 'aguardando';
+        if (step.order === 1) { perc = 100; status = 'concluido'; }
+        if (step.order === 2) { perc = 30; status = 'andamento'; }
+
+        await db.query(`
+          INSERT INTO cronograma_etapas (id, projetoId, step_order, name, description, percentage, status, duration_days, expected_date, image_url)
+          VALUES (?, 'proj_aurea', ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+          'step_aurea_' + step.order,
+          step.order,
+          step.name,
+          step.desc,
+          perc,
+          status,
+          step.duration,
+          expectedDateStr,
+          step.img
+        ]);
+      }
+      console.log('[INITDB] Seed: Projeto e 11 etapas padrão do cronograma inseridos.');
     }
 
     await db.end();

@@ -272,6 +272,8 @@ app.get('/api/all-data', async (req, res) => {
     const [mensagensWhatsapp] = await pool.query('SELECT * FROM mensagens_whatsapp');
     const [automacoes] = await pool.query('SELECT * FROM automacoes');
     const [itensPlanejamentoRaw] = await pool.query('SELECT * FROM itens_planejamento');
+    const [projetos] = await pool.query('SELECT * FROM cronograma_projetos');
+    const [etapas] = await pool.query('SELECT * FROM cronograma_etapas');
 
     // Parse JSON columns
     const contatos = contatosRaw.map(c => ({ ...c, acessos: safeParse(c.acessos) }));
@@ -297,7 +299,9 @@ app.get('/api/all-data', async (req, res) => {
       aprovacoes,
       mensagensWhatsapp,
       automacoes,
-      itensPlanejamento
+      itensPlanejamento,
+      projetos,
+      etapas
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -664,6 +668,126 @@ app.put('/api/automacoes/:id', async (req, res) => {
       WHERE id = ?
     `, [a.ativa ? 1 : 0, id]);
     res.json({ status: 'updated' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── CRONOGRAMA API ENDPOINTS ───────────────────────────────────────────────
+
+// Create Project
+app.post('/api/cronograma/projetos', async (req, res) => {
+  try {
+    const p = req.body;
+    await pool.query(`
+      INSERT INTO cronograma_projetos (id, clienteId, name, slug, client_name, banner_url, logo_url, start_date, expected_delivery, status, progress, color, criadoEm)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+      p.id, p.clienteId, p.name, p.slug, p.client_name, p.banner_url || null, p.logo_url || null,
+      p.start_date, p.expected_delivery, p.status || 'aguardando', p.progress || 0, p.color || '#2563EB', p.criadoEm || new Date().toISOString()
+    ]);
+    res.status(201).json({ status: 'created', id: p.id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update Project
+app.put('/api/cronograma/projetos/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const p = req.body;
+    await pool.query(`
+      UPDATE cronograma_projetos 
+      SET name = ?, client_name = ?, banner_url = ?, logo_url = ?, start_date = ?, expected_delivery = ?, status = ?, progress = ?, color = ?
+      WHERE id = ?
+    `, [
+      p.name, p.client_name, p.banner_url || null, p.logo_url || null,
+      p.start_date, p.expected_delivery, p.status, p.progress, p.color,
+      id
+    ]);
+    res.json({ status: 'updated' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete Project
+app.delete('/api/cronograma/projetos/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query('DELETE FROM cronograma_projetos WHERE id = ?', [id]);
+    await pool.query('DELETE FROM cronograma_etapas WHERE projetoId = ?', [id]);
+    res.json({ status: 'deleted' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Create Stage
+app.post('/api/cronograma/projetos/:id/etapas', async (req, res) => {
+  try {
+    const { id: projetoId } = req.params;
+    const s = req.body;
+    await pool.query(`
+      INSERT INTO cronograma_etapas (id, projetoId, step_order, name, description, percentage, status, duration_days, expected_date, image_url)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+      s.id, projetoId, s.step_order, s.name, s.description || '', s.percentage || 0,
+      s.status || 'aguardando', s.duration_days || 15, s.expected_date || null, s.image_url || null
+    ]);
+    res.status(201).json({ status: 'created', id: s.id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update Stage
+app.put('/api/cronograma/projetos/:projectId/etapas/:stepId', async (req, res) => {
+  try {
+    const { projectId, stepId } = req.params;
+    const s = req.body;
+    await pool.query(`
+      UPDATE cronograma_etapas 
+      SET name = ?, description = ?, percentage = ?, status = ?, duration_days = ?, expected_date = ?, image_url = ?
+      WHERE id = ? AND projetoId = ?
+    `, [
+      s.name, s.description, s.percentage, s.status, s.duration_days, s.expected_date, s.image_url || null,
+      stepId, projectId
+    ]);
+    res.json({ status: 'updated' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Reorder Stages
+app.put('/api/cronograma/projetos/:projectId/etapas/reordenar', async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { orderedStepIds } = req.body;
+    for (let i = 0; i < orderedStepIds.length; i++) {
+      await pool.query('UPDATE cronograma_etapas SET step_order = ? WHERE id = ? AND projetoId = ?', [i + 1, orderedStepIds[i], projectId]);
+    }
+    res.json({ status: 'reordered' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Set Active Stage
+app.put('/api/cronograma/projetos/:projectId/etapas/:stepId/atual', async (req, res) => {
+  try {
+    const { projectId, stepId } = req.params;
+    const [steps] = await pool.query('SELECT step_order FROM cronograma_etapas WHERE id = ? AND projetoId = ?', [stepId, projectId]);
+    if (steps.length === 0) return res.status(404).json({ error: 'Etapa não encontrada' });
+    const targetOrder = steps[0].step_order;
+    
+    await pool.query("UPDATE cronograma_etapas SET status = 'concluido', percentage = 100 WHERE projetoId = ? AND step_order < ?", [projectId, targetOrder]);
+    await pool.query("UPDATE cronograma_etapas SET status = 'andamento' WHERE projetoId = ? AND id = ?", [projectId, stepId]);
+    await pool.query("UPDATE cronograma_etapas SET status = 'aguardando', percentage = 0 WHERE projetoId = ? AND step_order > ?", [projectId, targetOrder]);
+    
+    res.json({ status: 'updated_current' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

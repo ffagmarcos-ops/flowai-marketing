@@ -12,6 +12,7 @@ import { AIToolsView } from './views/AIToolsView';
 import { ReportsView } from './views/ReportsView';
 import { AdminView } from './views/AdminView';
 import { PlannerView } from './views/PlannerView';
+import { CronogramaView } from './views/CronogramaView';
 import assistantGuide from './data/assistant_guide.json';
 
 function AppContent() {
@@ -124,6 +125,8 @@ function AppContent() {
         return <CalendarView />;
       case 'planner':
         return <PlannerView />;
+      case 'cronograma':
+        return <CronogramaView />;
       case 'approval':
         return <ApprovalPortalView />;
       case 'ai-tools':
