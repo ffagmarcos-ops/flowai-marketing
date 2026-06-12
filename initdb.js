@@ -217,6 +217,8 @@ async function init() {
         aprovadoresIds LONGTEXT,
         demandaGeradaId VARCHAR(50)
       );
+    `);
+
     // 11. Cronograma Projetos
     await db.query(`
       CREATE TABLE IF NOT EXISTS cronograma_projetos (
